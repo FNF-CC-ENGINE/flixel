@@ -61,35 +61,35 @@ class FlxLogStylesList
 	@:haxe.warning("-WDeprecated")
 	function set_normal (style:FlxLogStyle)
 	{
-		@:bypassAccessor LogStyle.NORMAL = style;
+		LogStyle.NORMAL = style;
 		return this.normal = style;
 	}
 	
 	@:haxe.warning("-WDeprecated")
 	function set_warning(style:FlxLogStyle)
 	{
-		@:bypassAccessor LogStyle.WARNING = style;
+		LogStyle.WARNING = style;
 		return this.warning = style;
 	}
 	
 	@:haxe.warning("-WDeprecated")
 	function set_error  (style:FlxLogStyle)
 	{
-		@:bypassAccessor LogStyle.ERROR = style;
+		LogStyle.ERROR = style;
 		return this.error = style;
 	}
 	
 	@:haxe.warning("-WDeprecated")
 	function set_notice (style:FlxLogStyle)
 	{
-		@:bypassAccessor LogStyle.NOTICE = style;
+		LogStyle.NOTICE = style;
 		return this.notice = style;
 	}
 	
 	@:haxe.warning("-WDeprecated")
 	function set_console(style:FlxLogStyle)
 	{
-		@:bypassAccessor LogStyle.CONSOLE = style;
+		LogStyle.CONSOLE = style;
 		return this.console = style;
 	}
 	

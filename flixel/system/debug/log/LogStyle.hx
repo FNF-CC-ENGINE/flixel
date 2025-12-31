@@ -13,50 +13,44 @@ import haxe.PosInfos;
 abstract LogStyle(FlxLogStyle) from FlxLogStyle to FlxLogStyle
 {
 	@:deprecated("LogStyle.NORMAL is deprecated, use FlxG.log.styles.NORMAL, instead")
-	public static var NORMAL (default, set):LogStyle;
-	static function set_NORMAL(style:LogStyle)
-	{
-		@:bypassAccessor
-		FlxG.log.styles.normal = style;
-		return NORMAL = style;
+	public static var NORMAL(get, set):LogStyle;
+	static function get_NORMAL():LogStyle return cast StaticHolder.NORMAL;
+	static function set_NORMAL(style:LogStyle):LogStyle {
+		StaticHolder.NORMAL = style;
+		return style;
 	}
 	
 	@:deprecated("LogStyle.WARNING is deprecated, use FlxG.log.styles.WARNING, instead")
-	public static var WARNING(default, set):LogStyle;
-	static function set_WARNING(style:LogStyle)
-	{
-		@:bypassAccessor
-		FlxG.log.styles.warning = style;
-		return WARNING = style;
+	public static var WARNING(get, set):LogStyle;
+	static function get_WARNING():LogStyle return cast StaticHolder.WARNING;
+	static function set_WARNING(style:LogStyle):LogStyle {
+		StaticHolder.WARNING = style;
+		return style;
 	}
 	
 	@:deprecated("LogStyle.ERROR is deprecated, use FlxG.log.styles.ERROR, instead")
-	public static var ERROR  (default, set):LogStyle;
-	static function set_ERROR(style:LogStyle)
-	{
-		@:bypassAccessor
-		FlxG.log.styles.error = style;
-		return ERROR = style;
+	public static var ERROR(get, set):LogStyle;
+	static function get_ERROR():LogStyle return cast StaticHolder.ERROR;
+	static function set_ERROR(style:LogStyle):LogStyle {
+		StaticHolder.ERROR = style;
+		return style;
 	}
 	
 	@:deprecated("LogStyle.NOTICE is deprecated, use FlxG.log.styles.NOTICE, instead")
-	public static var NOTICE (default, set):LogStyle;
-	static function set_NOTICE(style:LogStyle)
-	{
-		@:bypassAccessor
-		FlxG.log.styles.notice = style;
-		return NOTICE = style;
+	public static var NOTICE(get, set):LogStyle;
+	static function get_NOTICE():LogStyle return cast StaticHolder.NOTICE;
+	static function set_NOTICE(style:LogStyle):LogStyle {
+		StaticHolder.NOTICE = style;
+		return style;
 	}
 	
 	@:deprecated("LogStyle.CONSOLE is deprecated, use FlxG.log.styles.CONSOLE, instead")
-	public static var CONSOLE(default, set):LogStyle;
-	static function set_CONSOLE(style:LogStyle)
-	{
-		@:bypassAccessor
-		FlxG.log.styles.console = style;
-		return CONSOLE = style;
+	public static var CONSOLE(get, set):LogStyle;
+	static function get_CONSOLE():LogStyle return cast StaticHolder.CONSOLE;
+	static function set_CONSOLE(style:LogStyle):LogStyle {
+		StaticHolder.CONSOLE = style;
+		return style;
 	}
-	
 	
 	public var color(get, set):String;
 	inline function get_color() return this.format.getColorString();
@@ -89,5 +83,21 @@ abstract LogStyle(FlxLogStyle) from FlxLogStyle to FlxLogStyle
 		this.callbackFunction = callbackFunction;
 		if (callback != null)
 			this.onLog.add(callback);
+	}
+}
+
+private class StaticHolder {
+	public static var NORMAL:FlxLogStyle;
+	public static var WARNING:FlxLogStyle;
+	public static var ERROR:FlxLogStyle;
+	public static var NOTICE:FlxLogStyle;
+	public static var CONSOLE:FlxLogStyle;
+	
+	static function __init__() {
+		NORMAL = new FlxLogStyle();
+		WARNING = new FlxLogStyle();
+		ERROR = new FlxLogStyle();
+		NOTICE = new FlxLogStyle();
+		CONSOLE = new FlxLogStyle();
 	}
 }
