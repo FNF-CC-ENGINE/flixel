@@ -141,6 +141,11 @@ class FlxGame extends Sprite
 	var _lostFocus:Bool = false;
 
 	/**
+	 * Optimization to avoid a large elapsed time on the first frame after a state switch
+	 */
+	var _skipNextTickUpdate:Bool = false;
+
+	/**
 	 * The filters array to be applied to the game.
 	 */
 	var _filters:Array<BitmapFilter>;
@@ -458,6 +463,13 @@ class FlxGame extends Sprite
 	 */
 	function onEnterFrame(_):Void
 	{
+		if (_skipNextTickUpdate)
+		{
+			_skipNextTickUpdate = false;
+			_total = ticks = getTicks();
+			return;
+		}
+
 		ticks = getTicks();
 		_elapsedMS = ticks - _total;
 		_total = ticks;
@@ -595,6 +607,10 @@ class FlxGame extends Sprite
 		#end
 
 		FlxG.signals.postStateSwitch.dispatch();
+
+		draw();
+		_total = ticks = getTicks();
+		_skipNextTickUpdate = true;
 	}
 	
 	function gameStart()
