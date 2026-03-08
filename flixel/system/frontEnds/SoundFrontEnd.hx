@@ -2,12 +2,12 @@ package flixel.system.frontEnds;
 
 #if FLX_SOUND_SYSTEM
 import flixel.FlxG;
-import flixel.group.FlxGroup;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxMath;
 import flixel.sound.FlxSound;
 import flixel.sound.FlxSoundGroup;
-import flixel.system.FlxAssets;
+import flixel.system.FlxAssets.FlxSoundAsset;
 import flixel.system.ui.FlxSoundTray;
 import flixel.text.FlxInputText;
 import flixel.util.FlxSignal;
@@ -100,8 +100,15 @@ class SoundFrontEnd
 	 * Set this to a number between 0 and 1 to change the global volume.
 	 */
 	public var volume(default, set):Float = 1;
-	
-	function recycle(?group:FlxSoundGroup)
+
+	/**
+	 * If true, attempts to use streaming for all sound assets loaded via string paths.
+	 * Streaming is only supported for OGG/Vorbis files on native targets when `FLX_STREAM_SOUND` is defined.
+	 * Default is false.
+	 */
+	public var useStreamingForAll:Bool = false;
+
+	function recycle(?group:FlxSoundGroup):FlxSound
 	{
 		final sound = list.recycle(FlxSound);
 		sound.cleanup(true);
@@ -157,10 +164,17 @@ class SoundFrontEnd
 	 */
 	overload public inline extern function playMusic(asset:FlxSoundAsset, ?group, volume = 1.0, loop = true, ?onComplete):FlxSound
 	{
-		return recycleMusic(group)
-			.loadHelper(asset)
-			.setup(volume, loop, false, onComplete)
-			.play();
+		final sound = recycleMusic(group);
+		#if FLX_STREAM_SOUND
+		if (useStreamingForAll && Std.isOfType(asset, String))
+			sound.loadStreamed(cast asset, loop, false, onComplete);
+		else
+		#end
+			sound.load(asset, loop, false, onComplete);
+		sound.volume = volume;
+		sound.persist = true;
+		sound.play();
+		return sound;
 	}
 	
 	/**
@@ -198,10 +212,11 @@ class SoundFrontEnd
 			else
 			{
 				final sound = createFromURL(url, group, onLoad);
-				sound.setup(volume, loop, autoDestroy, onComplete);
-				if (autoPlay)
-					sound.play();
-				
+				sound.volume = volume;
+				sound.looped = loop;
+				sound.autoDestroy = autoDestroy;
+				sound.onComplete = onComplete;
+				if (autoPlay) sound.play();
 				sound;
 			}
 		}
@@ -210,17 +225,16 @@ class SoundFrontEnd
 			if (url != null)
 				FlxG.log.warn("FlxG.sound.load() received both an embedded asset and a url, ignoring url.");
 			
-			final sound = recycle(group)
-				.loadHelper(asset)
-				.setup(volume, loop, autoDestroy, onComplete);
-			
-			if (autoPlay)
-				sound.play();
-			
-			// Call OnLoad() because the sound already loaded
-			if (onLoad != null && sound._sound != null)
-				onLoad();
-			
+			final sound = recycle(group);
+			#if FLX_STREAM_SOUND
+			if (useStreamingForAll && Std.isOfType(asset, String))
+				sound.loadStreamed(cast asset, loop, autoDestroy, onComplete);
+			else
+			#end
+				sound.load(asset, loop, autoDestroy, onComplete);
+			sound.volume = volume;
+			if (autoPlay) sound.play();
+			if (onLoad != null && sound._sound != null) onLoad();
 			sound;
 		}
 	}
@@ -242,7 +256,15 @@ class SoundFrontEnd
 	 */
 	public function create(asset:FlxSoundAsset, ?group:FlxSoundGroup, allowCache = true):FlxSound
 	{
-		return recycle(group).loadHelper(asset, false, allowCache, true);
+		final sound = recycle(group);
+		#if FLX_STREAM_SOUND
+		if (useStreamingForAll && Std.isOfType(asset, String))
+			sound.loadStreamed(cast asset, false, false, null);
+		else
+		#end
+			sound.load(asset, false, false, null);
+		sound.play();
+		return sound;
 	}
 	
 	#if FLX_STREAM_SOUND
@@ -263,8 +285,7 @@ class SoundFrontEnd
 	 */
 	public function createStreamed(assetId:String, ?group:FlxSoundGroup):FlxSound
 	{
-		return recycle(group)
-			.loadStreamedHelper(assetId, false);
+		return recycle(group).loadStreamed(assetId, false, false, null);
 	}
 	
 	/**
@@ -288,9 +309,13 @@ class SoundFrontEnd
 	 */
 	public function playStreamed(assetId, ?group, volume = 1.0, loop = false, autoDestroy = false, ?onComplete):FlxSound 
 	{
-		return createStreamed(assetId, group)
-			.setup(volume, loop, autoDestroy, onComplete)
-			.play();
+		var sound = createStreamed(assetId, group);
+		sound.volume = volume;
+		sound.looped = loop;
+		sound.autoDestroy = autoDestroy;
+		sound.onComplete = onComplete;
+		sound.play();
+		return sound;
 	}
 	#end
 
@@ -334,10 +359,16 @@ class SoundFrontEnd
 	 */
 	public function play(asset:FlxSoundAsset, volume = 1.0, loop = false, ?group:FlxSoundGroup, autoDestroy = true, ?onComplete):FlxSound
 	{
-		return recycle(group)
-			.loadHelper(asset)
-			.setup(volume, loop, autoDestroy, onComplete)
-			.play();
+		final sound = recycle(group);
+		#if FLX_STREAM_SOUND
+		if (useStreamingForAll && Std.isOfType(asset, String))
+			sound.loadStreamed(cast asset, loop, autoDestroy, onComplete);
+		else
+		#end
+			sound.load(asset, loop, autoDestroy, onComplete);
+		sound.volume = volume;
+		sound.play();
+		return sound;
 	}
 	
 	/**
@@ -374,18 +405,12 @@ class SoundFrontEnd
 			autoDestroy = false, ?onComplete:()->Void):FlxSound
 	{
 		final sound = recycle(group);
-		// Auto play the sound when it's done loading
-		function playOnLoad()
-		{
+		sound.loadFromURL(url, loop, autoDestroy, onComplete, function() {
 			sound.play();
-
-			if (onLoad != null)
-				onLoad();
-		}
-		
-		return sound.loadFromURL(url, playOnLoad)
-			.setup(volume, loop, autoDestroy, onComplete)
-			.play();
+			if (onLoad != null) onLoad();
+		});
+		sound.volume = volume;
+		return sound;
 	}
 
 	/**
@@ -583,7 +608,7 @@ class SoundFrontEnd
 
 		for (sound in list.members)
 		{
-			if (sound != null)
+			if (sound != null && sound != music)
 			{
 				sound.onFocusLost();
 			}
@@ -600,7 +625,7 @@ class SoundFrontEnd
 
 		for (sound in list.members)
 		{
-			if (sound != null)
+			if (sound != null && sound != music)
 			{
 				sound.onFocus();
 			}
