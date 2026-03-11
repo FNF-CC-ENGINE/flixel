@@ -167,10 +167,12 @@ class SoundFrontEnd
 		final sound = recycleMusic(group);
 		#if FLX_STREAM_SOUND
 		if (useStreamingForAll && Std.isOfType(asset, String))
-			sound.loadStreamed(cast asset, loop, false, onComplete);
+			sound.loadStreamed(cast asset);
 		else
 		#end
-			sound.load(asset, loop, false, onComplete);
+			sound.load(asset);
+		sound.looped = loop;
+		sound.onComplete = onComplete;
 		sound.volume = volume;
 		sound.persist = true;
 		sound.play();
@@ -228,10 +230,13 @@ class SoundFrontEnd
 			final sound = recycle(group);
 			#if FLX_STREAM_SOUND
 			if (useStreamingForAll && Std.isOfType(asset, String))
-				sound.loadStreamed(cast asset, loop, autoDestroy, onComplete);
+				sound.loadStreamed(cast asset);
 			else
 			#end
-				sound.load(asset, loop, autoDestroy, onComplete);
+				sound.load(asset);
+			sound.looped = loop;
+			sound.autoDestroy = autoDestroy;
+			sound.onComplete = onComplete;
 			sound.volume = volume;
 			if (autoPlay) sound.play();
 			if (onLoad != null && sound._sound != null) onLoad();
@@ -259,10 +264,10 @@ class SoundFrontEnd
 		final sound = recycle(group);
 		#if FLX_STREAM_SOUND
 		if (useStreamingForAll && Std.isOfType(asset, String))
-			sound.loadStreamed(cast asset, false, false, null);
+			sound.loadStreamed(cast asset);
 		else
 		#end
-			sound.load(asset, false, false, null);
+			sound.load(asset, allowCache);
 		sound.play();
 		return sound;
 	}
@@ -285,7 +290,7 @@ class SoundFrontEnd
 	 */
 	public function createStreamed(assetId:String, ?group:FlxSoundGroup):FlxSound
 	{
-		return recycle(group).loadStreamed(assetId, false, false, null);
+		return recycle(group).loadStreamed(assetId);
 	}
 	
 	/**
@@ -362,10 +367,13 @@ class SoundFrontEnd
 		final sound = recycle(group);
 		#if FLX_STREAM_SOUND
 		if (useStreamingForAll && Std.isOfType(asset, String))
-			sound.loadStreamed(cast asset, loop, autoDestroy, onComplete);
+			sound.loadStreamed(cast asset);
 		else
 		#end
-			sound.load(asset, loop, autoDestroy, onComplete);
+			sound.load(asset);
+		sound.looped = loop;
+		sound.autoDestroy = autoDestroy;
+		sound.onComplete = onComplete;
 		sound.volume = volume;
 		sound.play();
 		return sound;
@@ -405,11 +413,14 @@ class SoundFrontEnd
 			autoDestroy = false, ?onComplete:()->Void):FlxSound
 	{
 		final sound = recycle(group);
-		sound.loadFromURL(url, loop, autoDestroy, onComplete, function() {
+		sound.volume = volume;
+		sound.looped = loop;
+		sound.autoDestroy = autoDestroy;
+		sound.onComplete = onComplete;
+		sound.loadFromURL(url, function() {
 			sound.play();
 			if (onLoad != null) onLoad();
 		});
-		sound.volume = volume;
 		return sound;
 	}
 
