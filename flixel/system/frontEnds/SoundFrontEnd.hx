@@ -28,7 +28,7 @@ class SoundFrontEnd
 	/**
 	 * Whether or not the game sounds are muted.
 	 */
-	public var muted:Bool = false;
+	public var muted(default, set):Bool = false;
 
 	/**
 	 * Set this hook to get a callback whenever the volume changes.
@@ -667,6 +667,8 @@ class SoundFrontEnd
 	@:haxe.warning("-WDeprecated")
 	function set_volume(Volume:Float):Float
 	{
+		#if mobile Volume = 1; #end
+		
 		volume = FlxMath.bound(Volume, 0, 1);
 
 		if (volumeHandler != null)
@@ -677,6 +679,11 @@ class SoundFrontEnd
 		onVolumeChange.dispatch(muted ? 0 : volume);
 
 		return volume;
+	}
+
+	public function set_muted(v:Bool):Bool
+	{
+		return muted = #if mobile false #else v #end;
 	}
 }
 #end
