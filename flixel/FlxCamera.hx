@@ -1657,9 +1657,6 @@ class FlxCamera extends FlxBasic
 		}
 		else
 		{
-			if (FxAlpha == 0)
-				return;
-			
 			final targetGraphics = (graphics == null) ? canvas.graphics : graphics;
 
 			targetGraphics.overrideBlendMode(null);
