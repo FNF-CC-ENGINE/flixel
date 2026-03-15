@@ -2,9 +2,6 @@ package flixel.tweens.misc;
 
 import flixel.tweens.FlxTween;
 
-/**
- * Tweens multiple numeric properties of an object simultaneously.
- */
 class VarTween extends FlxTween
 {
 	var _object:Dynamic;
@@ -79,7 +76,10 @@ class VarTween extends FlxTween
 			{
 				target = Reflect.getProperty(target, component);
 				if (!Reflect.isObject(target))
-					throw 'The object does not have the property "$component" in "$fieldPath"';
+				{
+					// Include information about the object that lacks the nested property
+					throw 'The object ${objectToString(target)} does not have the property "$component" in path "$fieldPath"';
+				}
 			}
 
 			_propertyInfos.push({
@@ -96,7 +96,10 @@ class VarTween extends FlxTween
 		for (info in _propertyInfos)
 		{
 			if (Reflect.getProperty(info.object, info.field) == null)
-				throw 'The object does not have the property "${info.field}"';
+			{
+				// Include information about the object that lacks the property
+				throw 'The object ${objectToString(info.object)} does not have the property "${info.field}"';
+			}
 
 			var value:Dynamic = Reflect.getProperty(info.object, info.field);
 			if (Math.isNaN(value))
@@ -105,6 +108,22 @@ class VarTween extends FlxTween
 			info.startValue = value;
 			info.range = info.range - value;
 		}
+	}
+
+	/**
+	 * Returns a readable description of an object (class name or string representation).
+	 */
+	static function objectToString(obj:Dynamic):String
+	{
+		if (obj == null)
+			return "null";
+
+		var cl = Type.getClass(obj);
+		if (cl != null)
+			return Type.getClassName(cl);
+
+		// For anonymous objects or primitives without a class
+		return Std.string(obj);
 	}
 
 	override public function destroy():Void
