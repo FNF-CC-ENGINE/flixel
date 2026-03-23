@@ -45,7 +45,7 @@ class Stats extends Window
 
 	var _itvTime:Float = 0;
 	var _frameCount:Int;
-	var _currentTime:Int;
+	var _currentTime:Float;
 
 	var fpsGraph:StatsGraph;
 	var memoryGraph:StatsGraph;
@@ -335,7 +335,7 @@ class Stats extends Window
 	 *
 	 * @param 	Time	How long this update took.
 	 */
-	public function flixelUpdate(Time:Int):Void
+	public function flixelUpdate(Time:Float):Void
 	{
 		if (_paused)
 			return;
@@ -347,7 +347,7 @@ class Stats extends Window
 	 *
 	 * @param	Time	How long this render took.
 	 */
-	public function flixelDraw(Time:Int):Void
+	public function flixelDraw(Time:Float):Void
 	{
 		if (_paused)
 			return;
