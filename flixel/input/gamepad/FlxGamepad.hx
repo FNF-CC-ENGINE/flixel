@@ -19,6 +19,7 @@ import flixel.input.gamepad.mappings.SwitchJoyconLeftMapping;
 import flixel.input.gamepad.mappings.SwitchJoyconRightMapping;
 import flixel.input.gamepad.mappings.XInputMapping;
 import flixel.math.FlxPoint;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxStringUtil;
 #if FLX_GAMEINPUT_API
