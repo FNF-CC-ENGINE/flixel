@@ -528,32 +528,17 @@ class FlxSound extends FlxBasic
 	 * Handy method to set up all playing fields at once
 	 * 
 	 * @param volume       How loud this sound will play (0 to 1)
-	 * @param looped       Whether this sound will loop on completion
-	 * @param autoDestroy  Whether this sound will be destroyed upon completion
-	 * @param onComplete   Called upon completion
-	 * @since 6.2.0
-	 */
-	public inline function setup(volume = 1.0, looped = false, autoDestroy = false, ?onComplete:()->Void):FlxSound
-	{
-		this.volume = volume;
-		loopUntil = -1;
-		return init(looped, autoDestroy, onComplete);
-	}
-	
-	/**
-	 * Handy method to set up all playing fields at once
-	 * 
-	 * @param volume       How loud this sound will play (0 to 1)
+	 * @param looped       Whether this sound will loop on completion or not
 	 * @param loopUntil    The number of times this sound will restart
 	 * @param autoDestroy  Whether this sound will be destroyed upon completion
 	 * @param onComplete   Called upon completion
 	 * @since 6.2.0
 	 */
-	public inline function setup(volume = 1.0, loopUntil:Int, autoDestroy = false, ?onComplete:()->Void):FlxSound
+	public inline function setup(volume = 1.0, ?looped = false, ?loopUntil:Int = -1, autoDestroy = false, ?onComplete:()->Void):FlxSound
 	{
 		this.volume = volume;
 		this.loopUntil = loopUntil;
-		return init(true, autoDestroy, onComplete);
+		return init(looped, autoDestroy, onComplete);
 	}
 	
 	function init(looped:Bool, autoDestroy:Bool, onComplete:Null<()->Void>):FlxSound

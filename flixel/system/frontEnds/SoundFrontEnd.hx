@@ -145,11 +145,11 @@ class SoundFrontEnd
 	 * @param   loop     Whether to loop this music.
 	 * @param   group    The group to manage this sound, if `null`, `defaultMusicGroup` is used.
 	 */
-	@:deprecated("playMusic(id, volume, loop, group) is deprecated, use playMusic(id, group, volume, loop), instead") // 6.2.0
+	/*@:deprecated("playMusic(id, volume, loop, group) is deprecated, use playMusic(id, group, volume, loop), instead") // 6.2.0
 	public inline function playMusic(assetId, volume = 1.0, loop = true, group:Null<FlxSoundGroup>):Void
 	{
 		playMusic(assetId, group, volume, loop);
-	}
+	}*/
 	
 	/**
 	 * Set up and play a looping background soundtrack.
