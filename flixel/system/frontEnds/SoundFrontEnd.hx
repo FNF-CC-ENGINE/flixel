@@ -146,7 +146,7 @@ class SoundFrontEnd
 	 * @param   group    The group to manage this sound, if `null`, `defaultMusicGroup` is used.
 	 */
 	@:deprecated("playMusic(id, volume, loop, group) is deprecated, use playMusic(id, group, volume, loop), instead") // 6.2.0
-	overload public inline function playMusic(assetId, volume = 1.0, loop = true, group:Null<FlxSoundGroup>):Void
+	public inline function playMusic(assetId, volume = 1.0, loop = true, group:Null<FlxSoundGroup>):Void
 	{
 		playMusic(assetId, group, volume, loop);
 	}
@@ -162,7 +162,7 @@ class SoundFrontEnd
 	 * @param   loop        Whether to loop this music.
 	 * @param   onComplete  Called when the sound finishes playing, before it checks whether to loop.
 	 */
-	overload public inline function playMusic(asset:FlxSoundAsset, ?group, volume = 1.0, loop = true, ?onComplete):FlxSound
+	public inline function playMusic(asset:FlxSoundAsset, ?group, volume = 1.0, loop = true, ?onComplete):FlxSound
 	{
 		final sound = recycleMusic(group);
 		#if FLX_STREAM_SOUND

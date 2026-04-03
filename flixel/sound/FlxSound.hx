@@ -533,7 +533,7 @@ class FlxSound extends FlxBasic
 	 * @param onComplete   Called upon completion
 	 * @since 6.2.0
 	 */
-	overload public inline function setup(volume = 1.0, looped = false, autoDestroy = false, ?onComplete:()->Void):FlxSound
+	public inline function setup(volume = 1.0, looped = false, autoDestroy = false, ?onComplete:()->Void):FlxSound
 	{
 		this.volume = volume;
 		loopUntil = -1;
@@ -549,7 +549,7 @@ class FlxSound extends FlxBasic
 	 * @param onComplete   Called upon completion
 	 * @since 6.2.0
 	 */
-	overload public inline function setup(volume = 1.0, loopUntil:Int, autoDestroy = false, ?onComplete:()->Void):FlxSound
+	public inline function setup(volume = 1.0, loopUntil:Int, autoDestroy = false, ?onComplete:()->Void):FlxSound
 	{
 		this.volume = volume;
 		this.loopUntil = loopUntil;
