@@ -361,7 +361,12 @@ class FlxSound extends FlxBasic
 	{
 		if (asset == null)
 			FlxG.log.error("Expected sound asset, got null");
-		
+
+		if (Std.isOfType(asset, String) && FlxG.sound.useStreamingForAll)
+		{
+			return loadStreamed(cast asset);
+		}
+
 		return loadHelper(asset, true, allowCache, true).init(false, false, null);
 	}
 	
