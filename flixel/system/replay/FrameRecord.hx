@@ -136,7 +136,7 @@ class FrameRecord
 			array = mouseData.split(",");
 			if (array.length >= 4)
 			{
-				mouse = new MouseRecord(Std.parseInt(array[0]), Std.parseInt(array[1]), Std.parseInt(array[2]), Std.parseInt(array[3]));
+				mouse = new MouseRecord(Std.parseInt(array[0]), Std.parseInt(array[1]), Std.parseInt(array[2]), Std.parseFloat(array[3]));
 			}
 		}
 

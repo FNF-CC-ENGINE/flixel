@@ -54,15 +54,15 @@ abstract FlxGraphicAsset(OneOfFour<FlxGraphic, BitmapData, String, Class<Dynamic
 
 abstract FlxSoundAsset(OneOfFour<String, Sound, Class<Sound>, ByteArray>) from String from Sound from Class<Sound> from ByteArray
 {
-	public inline function assertSound(allowCache = true, addExt = false):Sound
-	{
-		return FlxAssets.assertSound(cast this, allowCache, addExt);
-	}
-	
-	public inline function resolveSound(allowCache = true, addExt = false, ?log, ?pos):Sound
-	{
-		return FlxAssets.resolveSound(cast this, allowCache, addExt, log, pos);
-	}
+    public inline function assertSound(allowCache = true, addExt = false):Sound
+    {
+        return FlxAssets.assertSound(cast this, allowCache, addExt);
+    }
+    
+    public inline function resolveSound(allowCache = true, addExt = false, ?log, ?pos):Sound
+    {
+        return FlxAssets.resolveSound(cast this, allowCache, addExt, log, pos);
+    }
 }
 
 @:deprecated("`FlxGraphicSource` is deprecated, use `FlxGraphicAsset` instead")

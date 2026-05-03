@@ -18,7 +18,7 @@ class MouseRecord
 	/**
 	 * The state of the mouse wheel.
 	 */
-	public var wheel(default, null):Int;
+	public var wheel(default, null):Float;
 
 	/**
 	 * Instantiate a new mouse input record.
@@ -28,7 +28,7 @@ class MouseRecord
 	 * @param   Button   The state of the left mouse button.
 	 * @param   Wheel    The state of the mouse wheel.
 	 */
-	public function new(x:Int, y:Int, button:FlxInputState, wheel:Int)
+	public function new(x:Int, y:Int, button:FlxInputState, wheel:Float)
 	{
 		this.x = x;
 		this.y = y;

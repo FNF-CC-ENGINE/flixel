@@ -16,8 +16,6 @@ import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxGradient;
 import flixel.util.FlxStringUtil;
 
-// TODO: better handling bars with borders (don't take border into account while drawing its front).
-
 /**
  * FlxBar is a quick and easy way to create a graphical bar which can
  * be used as part of your UI/HUD, or positioned next to a sprite.
@@ -145,6 +143,9 @@ class FlxBar extends FlxSprite
 	var _filledBarPoint:Point;
 
 	var _maxPercent:Int = 100;
+
+	var _frontBorderSize:Int = 0;
+	var _hasFrontBorder:Bool = false;
 
 	/**
 	 * Create a new FlxBar Object
@@ -446,6 +447,10 @@ class FlxBar extends FlxSprite
 			_filledBarRect.setTo(0, 0, barWidth, barHeight);
 			updateFilledBar();
 		}
+
+		_hasFrontBorder = showBorder;
+		_frontBorderSize = showBorder ? borderSize : 0;
+
 		return this;
 	}
 
@@ -467,6 +472,10 @@ class FlxBar extends FlxSprite
 	{
 		createGradientEmptyBar(empty, chunkSize, rotation, showBorder, border, borderSize);
 		createGradientFilledBar(fill, chunkSize, rotation, showBorder, border, borderSize);
+
+		_hasFrontBorder = showBorder;
+		_frontBorderSize = showBorder ? borderSize : 0;
+
 		return this;
 	}
 
@@ -705,6 +714,9 @@ class FlxBar extends FlxSprite
 			createColoredFilledBar(fillBackground);
 		}
 
+		_hasFrontBorder = false;
+		_frontBorderSize = 0;
+
 		return this;
 	}
 
@@ -756,77 +768,81 @@ class FlxBar extends FlxSprite
 	 */
 	public function updateFilledBar():Void
 	{
-		_filledBarRect.width = barWidth;
-		_filledBarRect.height = barHeight;
+		var border:Int = _hasFrontBorder ? _frontBorderSize : 0;
+
+		var innerX:Int = border;
+		var innerY:Int = border;
+		var innerW:Int = Std.int(Math.max(0, barWidth - border * 2));
+		var innerH:Int = Std.int(Math.max(0, barHeight - border * 2));
+
+		_filledBarRect.x = innerX;
+		_filledBarRect.y = innerY;
+		_filledBarRect.width = innerW;
+		_filledBarRect.height = innerH;
+
+		_filledBarPoint.x = innerX;
+		_filledBarPoint.y = innerY;
 
 		var fraction:Float = (value - min) / range;
 		var percent:Float = fraction * _maxPercent;
-		var maxScale:Float = (_fillHorizontal) ? barWidth : barHeight;
+		var maxScale:Float = (_fillHorizontal) ? innerW : innerH;
 		var scaleInterval:Float = maxScale / numDivisions;
 		var interval:Float = Math.round(Std.int(fraction * maxScale / scaleInterval) * scaleInterval);
 
 		if (_fillHorizontal)
-		{
 			_filledBarRect.width = Std.int(interval);
-		}
 		else
-		{
 			_filledBarRect.height = Std.int(interval);
-		}
 
 		if (percent > 0)
 		{
 			switch (fillDirection)
 			{
 				case LEFT_TO_RIGHT, TOP_TO_BOTTOM:
-				//	Already handled above
+					// Already handled above
 
 				case BOTTOM_TO_TOP:
-					_filledBarRect.y = barHeight - _filledBarRect.height;
-					_filledBarPoint.y = barHeight - _filledBarRect.height;
+					_filledBarRect.y = innerY + innerH - _filledBarRect.height;
+					_filledBarPoint.y = _filledBarRect.y;
 
 				case RIGHT_TO_LEFT:
-					_filledBarRect.x = barWidth - _filledBarRect.width;
-					_filledBarPoint.x = barWidth - _filledBarRect.width;
+					_filledBarRect.x = innerX + innerW - _filledBarRect.width;
+					_filledBarPoint.x = _filledBarRect.x;
 
 				case HORIZONTAL_INSIDE_OUT:
-					_filledBarRect.x = Std.int((barWidth / 2) - (_filledBarRect.width / 2));
-					_filledBarPoint.x = Std.int((barWidth / 2) - (_filledBarRect.width / 2));
+					_filledBarRect.x = innerX + Std.int((innerW / 2) - (_filledBarRect.width / 2));
+					_filledBarPoint.x = _filledBarRect.x;
 
 				case HORIZONTAL_OUTSIDE_IN:
 					_filledBarRect.width = Std.int(maxScale - interval);
-					_filledBarPoint.x = Std.int((barWidth - _filledBarRect.width) / 2);
+					_filledBarRect.x = innerX + Std.int((innerW - _filledBarRect.width) / 2);
+					_filledBarPoint.x = _filledBarRect.x;
 
 				case VERTICAL_INSIDE_OUT:
-					_filledBarRect.y = Std.int((barHeight / 2) - (_filledBarRect.height / 2));
-					_filledBarPoint.y = Std.int((barHeight / 2) - (_filledBarRect.height / 2));
+					_filledBarRect.y = innerY + Std.int((innerH / 2) - (_filledBarRect.height / 2));
+					_filledBarPoint.y = _filledBarRect.y;
 
 				case VERTICAL_OUTSIDE_IN:
 					_filledBarRect.height = Std.int(maxScale - interval);
-					_filledBarPoint.y = Std.int((barHeight - _filledBarRect.height) / 2);
+					_filledBarRect.y = innerY + Std.int((innerH - _filledBarRect.height) / 2);
+					_filledBarPoint.y = _filledBarRect.y;
 			}
 
 			if (FlxG.renderBlit)
 			{
 				pixels.copyPixels(_filledBar, _filledBarRect, _filledBarPoint, null, null, true);
 			}
-			else
+			else if (frontFrames != null)
 			{
-				if (frontFrames != null)
-				{
-					_filledFlxRect.copyFromFlash(_filledBarRect).round();
-					if (Std.int(percent) > 0)
-					{
-						_frontFrame = frontFrames.frame.clipTo(_filledFlxRect, _frontFrame);
-					}
-				}
+				_filledFlxRect.copyFromFlash(_filledBarRect).round();
+
+				if (Std.int(percent) > 0)
+					_frontFrame = frontFrames.frame.clipTo(_filledFlxRect, _frontFrame);
 			}
 		}
 
 		if (FlxG.renderBlit)
-		{
 			dirty = true;
-		}
 	}
 
 	override public function update(elapsed:Float):Void
@@ -993,10 +1009,10 @@ class FlxBar extends FlxSprite
 	{
 		if (FlxG.renderTile)
 		{
-			if (value != null)
+			if (value != null && value.parent != null)
 				value.parent.incrementUseCount();
 				
-			if (frontFrames != null)
+			if (frontFrames != null && frontFrames.parent != null)
 				frontFrames.parent.decrementUseCount();
 
 			frontFrames = value;
