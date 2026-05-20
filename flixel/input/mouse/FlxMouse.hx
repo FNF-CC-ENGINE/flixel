@@ -625,6 +625,7 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		if (enabled)
 		{
 			_wheelUsed = true;
+			deltaWheel.set(flashEvent.deltaX, flashEvent.deltaY);
 			wheel = flashEvent.delta;
 		}
 	}
