@@ -142,33 +142,66 @@ class FlxSteamController
 	static function activateActionSet(SteamControllerHandle:Int, ActionSetHandle:Int)
 	{
 		#if FLX_STEAMWRAP
-		if (Steam.controllers == null)
+		if (Steam.controllers == null || controllers == null)
 			return;
+
 		if (SteamControllerHandle == FlxInputDeviceID.NONE)
 			return;
+
 		if (SteamControllerHandle == FlxInputDeviceID.ALL)
 		{
 			for (i in 0...controllers.length)
 			{
-				controllers[i].actionSet = ActionSetHandle;
-				Steam.controllers.activateActionSet(controllers[i].handle, ActionSetHandle);
+				if (controllers[i].handle >= 0)
+				{
+					controllers[i].actionSet = ActionSetHandle;
+					Steam.controllers.activateActionSet(controllers[i].handle, ActionSetHandle);
+				}
 			}
 		}
 		else if (SteamControllerHandle == FlxInputDeviceID.FIRST_ACTIVE)
 		{
-			// TODO: not sure FIRST_ACTIVE will be very reliable in a steam controller context... I might consider dropping support for this handle in the future
-			for (i in 0...controllers.length)
+			var handle = getFirstActiveHandle();
+
+			if (handle == -1)
 			{
-				if (controllers[i].active)
+				var connected = getConnectedControllers();
+
+				for (i in 0...connected.length)
 				{
-					controllers[i].actionSet = ActionSetHandle;
-					Steam.controllers.activateActionSet(controllers[i].handle, ActionSetHandle);
-					break;
+					if (connected[i] >= 0)
+					{
+						handle = connected[i];
+						break;
+					}
 				}
+			}
+
+			if (handle != -1)
+			{
+				for (i in 0...controllers.length)
+				{
+					if (controllers[i].handle == handle)
+					{
+						controllers[i].actionSet = ActionSetHandle;
+						break;
+					}
+				}
+
+				Steam.controllers.activateActionSet(handle, ActionSetHandle);
 			}
 		}
 		else
 		{
+			for (i in 0...controllers.length)
+			{
+				if (controllers[i].handle == SteamControllerHandle)
+				{
+					controllers[i].actionSet = ActionSetHandle;
+					break;
+				}
+			}
+
 			Steam.controllers.activateActionSet(SteamControllerHandle, ActionSetHandle);
 		}
 		#end
@@ -179,14 +212,14 @@ class FlxSteamController
 		#if FLX_STEAMWRAP
 		if (controllers == null)
 			return -1;
+
 		for (i in 0...controllers.length)
 		{
-			if (controllers[i].active)
-			{
+			if ((controllers[i].active || controllers[i].connected.pressed) && controllers[i].handle >= 0)
 				return controllers[i].handle;
-			}
 		}
 		#end
+
 		return -1;
 	}
 
