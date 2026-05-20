@@ -487,17 +487,6 @@ class AssetFrontEnd
 	 */
 	public dynamic function canStreamSound(id:String):Bool
 	{
-		#if lime_vorbis
-		// Check if file is really OGG/Vorbis
-		final vorbis = lime.media.vorbis.VorbisFile.fromFile(Assets.getPath(addSoundExtIf(id)));
-		if (vorbis != null)
-		{
-			vorbis.clear();
-
-			return true;
-		}
-		#end
-
 		return false;
 	}
 
