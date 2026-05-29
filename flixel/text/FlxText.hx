@@ -242,6 +242,8 @@ class FlxText extends FlxSprite
 		// call this just to set the textfield's properties
 		set_antialiasing(antialiasing);
 
+		antialiasing = false;
+
 		allowCollisions = NONE;
 		moves = false;
 
