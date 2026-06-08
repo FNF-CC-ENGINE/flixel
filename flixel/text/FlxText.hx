@@ -937,8 +937,9 @@ class FlxText extends FlxSprite
 			case NONE:
 		}
 		
-		final newWidth:Int = Math.ceil(newWidthFloat + borderWidth);
-		final newHeight:Int = Math.ceil(newHeightFloat + borderHeight);
+		final padding:Int = 4;
+		final newWidth:Int = Math.ceil(newWidthFloat + borderWidth) + padding * 2;
+		final newHeight:Int = Math.ceil(newHeightFloat + borderHeight) + padding * 2;
 		
 		// prevent text height from shrinking on flash if text == ""
 		if (textField.textHeight != 0 && (oldWidth != newWidth || oldHeight != newHeight))
@@ -1103,6 +1104,9 @@ class FlxText extends FlxSprite
 			case NONE | OUTLINE_FAST | OUTLINE:
 				_graphicOffset.set(0, 0);
 		}
+		
+		final padding:Int = 4;
+		_graphicOffset.add(padding, padding);
 		_matrix.translate(_graphicOffset.x, _graphicOffset.y);
 		
 		switch (borderStyle)
