@@ -1102,6 +1102,9 @@ class FlxText extends FlxSprite
 			
 			case OUTLINE_FAST | OUTLINE if (borderSize < 0):
 				_graphicOffset.set(-borderSize, -borderSize);
+
+			case NONE | OUTLINE_FAST | OUTLINE:
+				_graphicOffset.set(0, 0);
 		}
 		
 		final padding:Int = 4;
