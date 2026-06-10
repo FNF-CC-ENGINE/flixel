@@ -1083,6 +1083,8 @@ class FlxText extends FlxSprite
 	
 	function applyBorderStyle():Void
 	{
+		_graphicOffset.set(0, 0);
+
 		// offset entire image to fit the border
 		switch(borderStyle)
 		{
@@ -1100,9 +1102,6 @@ class FlxText extends FlxSprite
 			
 			case OUTLINE_FAST | OUTLINE if (borderSize < 0):
 				_graphicOffset.set(-borderSize, -borderSize);
-			
-			case NONE | OUTLINE_FAST | OUTLINE:
-				_graphicOffset.set(0, 0);
 		}
 		
 		final padding:Int = 4;
