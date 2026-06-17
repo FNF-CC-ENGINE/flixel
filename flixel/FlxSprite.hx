@@ -1877,7 +1877,7 @@ class FlxSprite extends FlxObject
 	@:noCompletion
 	function set_alpha(value:Float):Float
 	{
-		value = FlxMath.bound(value, 0, 1);
+		value = FlxMath.bound(value, 0.0000001, 1);
 		if (alpha == value)
 			return value;
 		

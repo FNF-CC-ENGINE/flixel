@@ -77,6 +77,12 @@ class FlxBasic implements IFlxDestroyable
 	 */
 	public var container(get, null):Null<FlxContainer>;
 
+	/**
+	 * The zIndex of this object, used for layering.
+	 * Higher values are drawn on top of lower values, and vice versa.
+	 */
+	public var zIndex:Int = 0;
+
 	public function new() {}
 
 	/**

@@ -1848,7 +1848,21 @@ class FlxCamera extends FlxBasic
 		if (result == null)
 			result = FlxPoint.get();
 		
-		return result.set(worldToViewX(worldX, scrollFactorX), worldToViewY(worldY, scrollFactorY));
+		var viewX = worldToViewX(worldX, scrollFactorX);
+		var viewY = worldToViewY(worldY, scrollFactorY);
+
+		if (angle != 0)
+		{
+			final pivotX = width * 0.5;
+			final pivotY = height * 0.5;
+			final dx = viewX - pivotX;
+			final dy = viewY - pivotY;
+
+			viewX = pivotX + (dx * _cosAngle + dy * _sinAngle);
+			viewY = pivotY + (dy * _cosAngle - dx * _sinAngle);
+		}
+		
+		return result.set(viewX, viewY);
 	}
 	
 	/**
@@ -1945,6 +1959,17 @@ class FlxCamera extends FlxBasic
 		if (result == null)
 			result = FlxPoint.get();
 		
+		if (angle != 0)
+		{
+			final pivotX = width * 0.5;
+			final pivotY = height * 0.5;
+			final dx = viewX - pivotX;
+			final dy = viewY - pivotY;
+
+			viewX = pivotX + (dx * _cosAngle - dy * _sinAngle);
+			viewY = pivotY + (dx * _sinAngle + dy * _cosAngle);
+		}
+		
 		return result.set(viewToWorldX(viewX, scrollFactorX), viewToWorldY(viewY, scrollFactorY));
 	}
 	
@@ -2004,7 +2029,21 @@ class FlxCamera extends FlxBasic
 		if (result == null)
 			result = FlxPoint.get();
 		
-		return result.set(gameToViewX(gameX), gameToViewY(gameY));
+		var viewX = (gameX - x) / zoom;
+		var viewY = (gameY - y) / zoom;
+
+		if (angle != 0)
+		{
+			final pivotX = width * 0.5;
+			final pivotY = height * 0.5;
+			final dx = viewX - pivotX;
+			final dy = viewY - pivotY;
+
+			viewX = pivotX + (dx * _cosAngle + dy * _sinAngle);
+			viewY = pivotY + (dy * _cosAngle - dx * _sinAngle);
+		}
+		
+		return result.set(viewX, viewY);
 	}
 	
 	/**
@@ -2060,6 +2099,17 @@ class FlxCamera extends FlxBasic
 	{
 		if (result == null)
 			result = FlxPoint.get();
+		
+		if (angle != 0)
+		{
+			final pivotX = width * 0.5;
+			final pivotY = height * 0.5;
+			final dx = viewX - pivotX;
+			final dy = viewY - pivotY;
+
+			viewX = pivotX + (dx * _cosAngle - dy * _sinAngle);
+			viewY = pivotY + (dx * _sinAngle + dy * _cosAngle);
+		}
 		
 		return result.set(viewToGameX(viewX), viewToGameY(viewY));
 	}
@@ -2255,7 +2305,7 @@ class FlxCamera extends FlxBasic
 
 	function set_alpha(Alpha:Float):Float
 	{
-		alpha = FlxMath.bound(Alpha, 0, 1);
+		alpha = FlxMath.bound(Alpha, 0.0000001, 1);
 		if (FlxG.renderBlit)
 		{
 			_flashBitmap.alpha = Alpha;
@@ -2267,10 +2317,18 @@ class FlxCamera extends FlxBasic
 		return Alpha;
 	}
 
+	var _cosAngle:Float = 1.0;
+	var _sinAngle:Float = 0.0;
+
 	function set_angle(Angle:Float):Float
 	{
 		angle = Angle;
 		flashSprite.rotation = Angle;
+		
+		var radians = Angle * FlxMath.TO_RAD;
+		_cosAngle = Math.cos(radians);
+		_sinAngle = Math.sin(radians);
+		
 		return Angle;
 	}
 
