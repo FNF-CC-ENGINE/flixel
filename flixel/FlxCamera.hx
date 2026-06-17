@@ -5,6 +5,7 @@ import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.tile.FlxDrawBaseItem;
 import flixel.graphics.tile.FlxDrawQuadsItem;
 import flixel.graphics.tile.FlxDrawTrianglesItem;
+import flixel.math.FlxAngle;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
@@ -2325,7 +2326,7 @@ class FlxCamera extends FlxBasic
 		angle = Angle;
 		flashSprite.rotation = Angle;
 		
-		var radians = Angle * FlxMath.TO_RAD;
+		var radians = Angle * FlxAngle.TO_RAD;
 		_cosAngle = Math.cos(radians);
 		_sinAngle = Math.sin(radians);
 		
