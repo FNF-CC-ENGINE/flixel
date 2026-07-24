@@ -123,14 +123,12 @@ class SoundFrontEnd
 			group = defaultMusicGroup;
 		
 		if (music == null)
-		{
-			music = recycle(group);
-		}
+			music = new FlxSound();
 		else if (music.active)
-		{
 			music.stop();
-			group.add(music);
-		}
+		
+		music.persist = true;
+		group.add(music);
 		
 		return music;
 	}
@@ -449,6 +447,11 @@ class SoundFrontEnd
 	 */
 	public function pause():Void
 	{
+		if (music != null && music.exists && music.active)
+		{
+			music.pause();
+		}
+
 		for (sound in list.members)
 		{
 			if (sound != null && sound.exists && sound.active)
@@ -463,6 +466,11 @@ class SoundFrontEnd
 	 */
 	public function resume():Void
 	{
+		if (music != null && music.exists)
+		{
+			music.resume();
+		}
+
 		for (sound in list.members)
 		{
 			if (sound != null && sound.exists)
@@ -479,6 +487,12 @@ class SoundFrontEnd
 	 */
 	public function destroy(forceDestroy = false):Void
 	{
+		if (music != null && (forceDestroy || !music.persist))
+		{
+			music.destroy();
+			music = null;
+		}
+
 		for (sound in list.members)
 		{
 			if (sound != null && (forceDestroy || !sound.persist))
@@ -592,6 +606,9 @@ class SoundFrontEnd
 	@:allow(flixel.FlxGame)
 	function update(elapsed:Float):Void
 	{
+		if (music != null && music.active)
+			music.update(elapsed);
+
 		if (list != null && list.active)
 			list.update(elapsed);
 
@@ -611,6 +628,11 @@ class SoundFrontEnd
 	@:allow(flixel.FlxGame)
 	function onFocusLost():Void
 	{
+		if (music != null)
+		{
+			music.onFocusLost();
+		}
+
 		for (sound in list.members)
 		{
 			if (sound != null)
@@ -623,6 +645,11 @@ class SoundFrontEnd
 	@:allow(flixel.FlxGame)
 	function onFocus():Void
 	{
+		if (music != null)
+		{
+			music.onFocus();
+		}
+
 		for (sound in list.members)
 		{
 			if (sound != null)
