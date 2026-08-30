@@ -1,6 +1,7 @@
 package flixel;
 
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
+import flixel.math.FlxRect;
 
 /**
  * A very basic rendering component which uses `drawTriangles()`.
@@ -44,7 +45,6 @@ class FlxStrip extends FlxSprite
 		super.destroy();
 	}
 
-	// TODO: check this for cases when zoom is less than initial zoom...
 	override public function draw():Void
 	{
 		if (alpha == 0 || graphic == null || vertices == null)
@@ -53,12 +53,65 @@ class FlxStrip extends FlxSprite
 		final cameras = getCamerasLegacy();
 		for (camera in cameras)
 		{
-			if (!camera.visible || !camera.exists)
-				continue;
+			if (!camera.visible || !camera.exists || !isOnScreen(camera))
+    			continue;
 
 			getScreenPosition(_point, camera);
-			_point -= offset;
+			
+			_point.subtractPoint(offset); 
 			camera.drawTriangles(graphic, vertices, indices, uvtData, colors, _point, blend, repeat, antialiasing, colorTransform, shader);
 		}
+	}
+
+	override public function getScreenBounds(?newRect:FlxRect, ?camera:FlxCamera):FlxRect
+	{
+		if (newRect == null)
+			newRect = FlxRect.get();
+		
+		if (camera == null)
+			camera = getDefaultCamera();
+
+		var minX:Float = Math.POSITIVE_INFINITY;
+		var minY:Float = Math.POSITIVE_INFINITY;
+		var maxX:Float = Math.NEGATIVE_INFINITY;
+		var maxY:Float = Math.NEGATIVE_INFINITY;
+
+		if (vertices != null && vertices.length >= 2)
+		{
+			var i:Int = 0;
+			while (i < vertices.length)
+			{
+				var vx:Float = vertices[i];
+				var vy:Float = vertices[i + 1];
+				if (vx < minX) minX = vx;
+				if (vx > maxX) maxX = vx;
+				if (vy < minY) minY = vy;
+				if (vy > maxY) maxY = vy;
+				i += 2;
+			}
+		}
+		else
+		{
+			minX = 0; minY = 0; maxX = frameWidth; maxY = frameHeight;
+		}
+
+		newRect.setPosition(x, y);
+
+		if (pixelPerfectPosition)
+			newRect.round();
+
+		_scaledOrigin.set(origin.x * scale.x, origin.y * scale.y);
+		
+		newRect.x += -Std.int(camera.scroll.x * scrollFactor.x) - offset.x + origin.x - _scaledOrigin.x;
+		newRect.y += -Std.int(camera.scroll.y * scrollFactor.y) - offset.y + origin.y - _scaledOrigin.y;
+
+		if (isPixelPerfectRender(camera))
+			newRect.round();
+
+		newRect.x += minX * Math.abs(scale.x);
+		newRect.y += minY * Math.abs(scale.y);
+		newRect.setSize((maxX - minX) * Math.abs(scale.x), (maxY - minY) * Math.abs(scale.y));
+
+		return newRect.getRotatedBounds(angle, _scaledOrigin, newRect);
 	}
 }
