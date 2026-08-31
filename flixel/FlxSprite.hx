@@ -829,7 +829,7 @@ class FlxSprite extends FlxObject
 	public function clipToWorldBoundsSimple(left:Float, top:Float, right:Float, bottom:Float)
 	{
 		if (clipRect == null)
-			clipRect = FlxRect.get;
+			clipRect = FlxRect.get();
 		
 		final p1 = worldToFrameSimpleHelper(left, top);
 		final p2 = worldToFrameSimpleHelper(right, bottom);
