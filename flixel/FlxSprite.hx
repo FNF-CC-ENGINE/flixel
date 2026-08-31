@@ -1031,7 +1031,6 @@ class FlxSprite extends FlxObject
 	}
 	
 	@:noCompletion
-	@:noCompletion
 	static final drawComplexMatrix = new FlxMatrix();
 	function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
 	{
