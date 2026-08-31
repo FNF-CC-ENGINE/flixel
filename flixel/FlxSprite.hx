@@ -295,6 +295,12 @@ class FlxSprite extends FlxObject
 	public var shader:FlxShader;
 
 	/**
+	 * An array of additional GLSL shaders for this sprite.
+	 * Rendered on top of the base sprite via multi-pass rendering.
+	 */
+	public var shaders:Array<FlxShader> = [];
+
+	/**
 	 * The actual frame used for sprite rendering
 	 */
 	@:noCompletion
@@ -446,6 +452,12 @@ class FlxSprite extends FlxObject
 		_frameGraphic = FlxDestroyUtil.destroy(_frameGraphic);
 
 		shader = null;
+
+		if (shaders != null)
+		{
+			shaders.splice(0, shaders.length);
+			shaders = null;
+		}
 	}
 
 	public function clone():FlxSprite
@@ -770,7 +782,7 @@ class FlxSprite extends FlxObject
 	public function clipToWorldBounds(left:Float, top:Float, right:Float, bottom:Float)
 	{
 		if (clipRect == null)
-			clipRect = new FlxRect();
+			clipRect = FlxRect.get();
 		
 		final p1 = worldToFramePosition(left, top);
 		final p2 = worldToFramePosition(right, bottom);
@@ -817,7 +829,7 @@ class FlxSprite extends FlxObject
 	public function clipToWorldBoundsSimple(left:Float, top:Float, right:Float, bottom:Float)
 	{
 		if (clipRect == null)
-			clipRect = new FlxRect();
+			clipRect = FlxRect.get;
 		
 		final p1 = worldToFrameSimpleHelper(left, top);
 		final p2 = worldToFrameSimpleHelper(right, bottom);
@@ -864,7 +876,7 @@ class FlxSprite extends FlxObject
 	public function clipToViewBounds(left:Float, top:Float, right:Float, bottom:Float, ?camera:FlxCamera)
 	{
 		if (clipRect == null)
-			clipRect = new FlxRect();
+			clipRect = FlxRect.get();
 		
 		if (camera == null)
 			camera = getDefaultCamera();
@@ -1019,13 +1031,27 @@ class FlxSprite extends FlxObject
 	}
 	
 	@:noCompletion
+	@:noCompletion
 	static final drawComplexMatrix = new FlxMatrix();
 	function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
 	{
-		final matrix = drawComplexMatrix; // TODO: Just use local?
+		final matrix = drawComplexMatrix;
+		
 		prepareComplexMatrix(matrix, frame, camera);
 		
 		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+
+		if (shaders != null && shaders.length > 0)
+		{
+			for (i in 0...shaders.length)
+			{
+				var extraShader = shaders[i];
+				if (extraShader != null)
+				{
+					camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, extraShader);
+				}
+			}
+		}
 	}
 	
 	function prepareComplexMatrix(matrix:FlxMatrix, frame:FlxFrame, camera:FlxCamera)

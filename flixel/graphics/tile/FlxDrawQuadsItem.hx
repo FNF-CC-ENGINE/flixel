@@ -21,6 +21,12 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
 
+	var rectsPosition:Int = 0;
+	var transformsPosition:Int = 0;
+	var alphasPosition:Int = 0;
+	var colorMultipliersPosition:Int = 0;
+	var colorOffsetsPosition:Int = 0;
+
 	public function new()
 	{
 		super();
@@ -33,13 +39,11 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	override public function reset():Void
 	{
 		super.reset();
-		rects.length = 0;
-		transforms.length = 0;
-		alphas.splice(0, alphas.length);
-		if (colorMultipliers != null)
-			colorMultipliers.splice(0, colorMultipliers.length);
-		if (colorOffsets != null)
-			colorOffsets.splice(0, colorOffsets.length);
+		rectsPosition = 0;
+		transformsPosition = 0;
+		alphasPosition = 0;
+		colorMultipliersPosition = 0;
+		colorOffsetsPosition = 0;
 	}
 
 	override public function dispose():Void
@@ -55,65 +59,88 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
 	{
 		var rect = frame.frame;
-		rects.push(rect.x);
-		rects.push(rect.y);
-		rects.push(rect.width);
-		rects.push(rect.height);
+		
+		if (rects.length < rectsPosition + 4) rects.length = rectsPosition + 4 + 256;
+		
+		rects[rectsPosition++] = rect.x;
+		rects[rectsPosition++] = rect.y;
+		rects[rectsPosition++] = rect.width;
+		rects[rectsPosition++] = rect.height;
 
-		transforms.push(matrix.a);
-		transforms.push(matrix.b);
-		transforms.push(matrix.c);
-		transforms.push(matrix.d);
-		transforms.push(matrix.tx);
-		transforms.push(matrix.ty);
+		if (transforms.length < transformsPosition + 6) transforms.length = transformsPosition + 6 + 256;
+		
+		transforms[transformsPosition++] = matrix.a;
+		transforms[transformsPosition++] = matrix.b;
+		transforms[transformsPosition++] = matrix.c;
+		transforms[transformsPosition++] = matrix.d;
+		transforms[transformsPosition++] = matrix.tx;
+		transforms[transformsPosition++] = matrix.ty;
 
 		var alphaMultiplier = transform != null ? transform.alphaMultiplier : 1.0;
+		var aPos = alphasPosition;
 		for (i in 0...VERTICES_PER_QUAD)
-			alphas.push(alphaMultiplier);
+			alphas[aPos++] = alphaMultiplier;
+		alphasPosition = aPos;
 
 		if (colored || hasColorOffsets)
 		{
-			if (colorMultipliers == null)
-				colorMultipliers = [];
+			if (colorMultipliers == null) colorMultipliers = [];
+			if (colorOffsets == null) colorOffsets = [];
 
-			if (colorOffsets == null)
-				colorOffsets = [];
+			var cmPos = colorMultipliersPosition;
+			var coPos = colorOffsetsPosition;
 
 			for (i in 0...VERTICES_PER_QUAD)
 			{
 				if (transform != null)
 				{
-					colorMultipliers.push(transform.redMultiplier);
-					colorMultipliers.push(transform.greenMultiplier);
-					colorMultipliers.push(transform.blueMultiplier);
+					colorMultipliers[cmPos++] = transform.redMultiplier;
+					colorMultipliers[cmPos++] = transform.greenMultiplier;
+					colorMultipliers[cmPos++] = transform.blueMultiplier;
+					colorMultipliers[cmPos++] = 1;
 
-					colorOffsets.push(transform.redOffset);
-					colorOffsets.push(transform.greenOffset);
-					colorOffsets.push(transform.blueOffset);
-					colorOffsets.push(transform.alphaOffset);
+					colorOffsets[coPos++] = transform.redOffset;
+					colorOffsets[coPos++] = transform.greenOffset;
+					colorOffsets[coPos++] = transform.blueOffset;
+					colorOffsets[coPos++] = transform.alphaOffset;
 				}
 				else
 				{
-					colorMultipliers.push(1);
-					colorMultipliers.push(1);
-					colorMultipliers.push(1);
+					colorMultipliers[cmPos++] = 1;
+					colorMultipliers[cmPos++] = 1;
+					colorMultipliers[cmPos++] = 1;
+					colorMultipliers[cmPos++] = 1;
 
-					colorOffsets.push(0);
-					colorOffsets.push(0);
-					colorOffsets.push(0);
-					colorOffsets.push(0);
+					colorOffsets[coPos++] = 0;
+					colorOffsets[coPos++] = 0;
+					colorOffsets[coPos++] = 0;
+					colorOffsets[coPos++] = 0;
 				}
-
-				colorMultipliers.push(1);
 			}
+			
+			colorMultipliersPosition = cmPos;
+			colorOffsetsPosition = coPos;
 		}
 	}
 
 	#if !flash
 	override public function render(camera:FlxCamera):Void
 	{
-		if (rects.length == 0)
+		if (rectsPosition == 0)
 			return;
+		
+		rects.length = rectsPosition;
+		transforms.length = transformsPosition;
+		
+		#if (cpp || hl)
+		alphas.resize(alphasPosition);
+		if (colorMultipliers != null) colorMultipliers.resize(colorMultipliersPosition);
+		if (colorOffsets != null) colorOffsets.resize(colorOffsetsPosition);
+		#else
+		if (alphas.length > alphasPosition) alphas.splice(alphasPosition, alphas.length - alphasPosition);
+		if (colorMultipliers != null && colorMultipliers.length > colorMultipliersPosition) colorMultipliers.splice(colorMultipliersPosition, colorMultipliers.length - colorMultipliersPosition);
+		if (colorOffsets != null && colorOffsets.length > colorOffsetsPosition) colorOffsets.splice(colorOffsetsPosition, colorOffsets.length - colorOffsetsPosition);
+		#end
 		
 		// TODO: catch this error when the dev actually messes up, not in the draw phase
 		if (shader == null && graphics.isDestroyed)

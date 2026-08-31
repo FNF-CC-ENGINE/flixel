@@ -796,8 +796,22 @@ class FlxCamera extends FlxBasic
 			}
 			else if (frame != null)
 			{
-				// TODO: fix this case for zoom less than initial zoom...
-				frame.paint(buffer, destPoint, true);
+				var bmp = frame.paint();
+				if (bmp != null)
+				{
+					_helperMatrix.identity();
+					_helperMatrix.translate(destPoint.x + frame.offset.x, destPoint.y + frame.offset.y);
+					if (_useBlitMatrix)
+					{
+						_helperMatrix.concat(_blitMatrix);
+						buffer.draw(bmp, _helperMatrix, null, null, null, (smoothing || antialiasing));
+					}
+					else
+					{
+						_helperMatrix.translate(-viewMarginLeft, -viewMarginTop);
+						buffer.draw(bmp, _helperMatrix, null, blend, null, (smoothing || antialiasing));
+					}
+				}
 			}
 		}
 		else
@@ -833,7 +847,11 @@ class FlxCamera extends FlxBasic
 			var tempX:Float, tempY:Float;
 			var i:Int = 0;
 			var bounds = renderRect.set();
-			drawVertices.splice(0, drawVertices.length);
+
+			if (drawVertices.length < verticesLength)
+			{
+				drawVertices.length = verticesLength + 512;
+			}
 
 			while (i < verticesLength)
 			{
@@ -857,18 +875,15 @@ class FlxCamera extends FlxBasic
 
 			position.putWeak();
 
-			if (!cameraBounds.overlaps(bounds))
+			if (cameraBounds.overlaps(bounds))
 			{
-				drawVertices.splice(drawVertices.length - verticesLength, verticesLength);
-			}
-			else
-			{
+				drawVertices.length = currentVertexPosition;
+
 				trianglesSprite.graphics.clear();
 				trianglesSprite.graphics.beginBitmapFill(graphic.bitmap, null, repeat, smoothing);
 				trianglesSprite.graphics.drawTriangles(drawVertices, indices, uvtData);
 				trianglesSprite.graphics.endFill();
 
-				// TODO: check this block of code for cases, when zoom < 1 (or initial zoom?)...
 				if (_useBlitMatrix)
 					_helperMatrix.copyFrom(_blitMatrix);
 				else
@@ -877,7 +892,7 @@ class FlxCamera extends FlxBasic
 					_helperMatrix.translate(-viewMarginLeft, -viewMarginTop);
 				}
 
-				buffer.draw(trianglesSprite, _helperMatrix, transform);
+				buffer.draw(trianglesSprite, _helperMatrix, transform, null, null, smoothing || antialiasing);
 
 				#if FLX_DEBUG
 				if (FlxG.debugger.drawDebug)
@@ -889,10 +904,7 @@ class FlxCamera extends FlxBasic
 					buffer.draw(FlxSpriteUtil.flashGfxSprite, _helperMatrix);
 				}
 				#end
-				// End of TODO...
 			}
-
-			bounds.put();
 		}
 		else
 		{
