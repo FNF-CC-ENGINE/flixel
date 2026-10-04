@@ -103,6 +103,33 @@ class AssetFrontEnd
 	 */
 	public dynamic function getAssetUnsafe(id:String, type:FlxAssetType, useCache = true):Null<Any>
 	{
+		#if sys
+		if (sys.FileSystem.exists(id) && !sys.FileSystem.isDirectory(id))
+		{
+			final canUseCache = useCache && Assets.cache.enabled;
+			return switch(type)
+			{
+				case TEXT: sys.io.File.getContent(id);
+				case BINARY: sys.io.File.getBytes(id);
+				case IMAGE: 
+					final bitmap = BitmapData.fromFile(id);
+					if (canUseCache)
+						Assets.cache.setBitmapData(id, bitmap);
+					bitmap;
+				case SOUND: 
+					final sound = Sound.fromFile(id);
+					if (canUseCache)
+						Assets.cache.setSound(id, sound);
+					sound;
+				case FONT: 
+					final font = Font.fromFile(id);
+					if (canUseCache)
+						Assets.cache.setFont(id, font);
+					font;
+			}
+		}
+		#end
+
 		#if FLX_STANDARD_ASSETS_DIRECTORY
 		return getOpenflAssetUnsafe(id, type, useCache);
 		#else
@@ -241,11 +268,15 @@ class AssetFrontEnd
 			id = addSoundExt(id);
 		#end
 		
+		#if sys
+		if (sys.FileSystem.exists(id)) return true;
+		#end
+		
 		#if FLX_STANDARD_ASSETS_DIRECTORY
-		return Assets.exists(id, type.toOpenFlType());
+		return Assets.exists(id, type != null ? type.toOpenFlType() : null);
 		#else
 		if (useOpenflAssets(id))
-			return Assets.exists(id, type.toOpenFlType());
+			return Assets.exists(id, type != null ? type.toOpenFlType() : null);
 		// Can't verify contents match expected type without
 		return sys.FileSystem.exists(getPath(id));
 		#end
@@ -269,12 +300,16 @@ class AssetFrontEnd
 			id = addSoundExt(id);
 		#end
 		
+		#if sys
+		if (sys.FileSystem.exists(id)) return true;
+		#end
+		
 		#if FLX_STANDARD_ASSETS_DIRECTORY
-		return Assets.isLocal(id, type.toOpenFlType(), useCache);
+		return Assets.isLocal(id, type != null ? type.toOpenFlType() : null, useCache);
 		#else
 		
 		if (useOpenflAssets(id))
-			Assets.isLocal(id, type.toOpenFlType(), useCache);
+			Assets.isLocal(id, type != null ? type.toOpenFlType() : null, useCache);
 		
 		return true;
 		#end
@@ -290,7 +325,7 @@ class AssetFrontEnd
 	public dynamic function list(?type:FlxAssetType)
 	{
 		#if FLX_STANDARD_ASSETS_DIRECTORY
-		return Assets.list(type.toOpenFlType());
+		return Assets.list(type != null ? type.toOpenFlType() : null);
 		#else
 		// list all files in the directory, recursively
 		final list = [];
@@ -399,7 +434,6 @@ class AssetFrontEnd
 	 * Streamed sounds load and unload chunks of audio data during playback, keeping memory usage low.
 	 * The usage of streamed sounds is only recommended for larger audio tracks, such as music.
 	 * 
-	 * **Note**: Due to a backend limitation, streamed sounds currently only work on native targets and OGG/Vorbis files.
 	 * Trying to stream an unsupported file format will fall back to regular sound loading behavior.
 	 * 
 	 * @param   id        The ID or asset path for the sound
@@ -408,7 +442,18 @@ class AssetFrontEnd
 	 */
 	public dynamic function streamSoundUnsafe(id:String):Sound
 	{
-		return Assets.getMusic(addSoundExtIf(id));
+		final fullId = addSoundExtIf(id);
+		
+		#if sys
+		if (sys.FileSystem.exists(fullId)) {
+			var buffer = lime.media.AudioBuffer.fromFileStream(fullId);
+			if (buffer != null) return openfl.media.Sound.fromAudioBuffer(buffer);
+			
+			return openfl.media.Sound.fromFile(fullId);
+		}
+		#end
+		
+		return Assets.getMusic(fullId);
 	}
 
 	/**
@@ -417,7 +462,6 @@ class AssetFrontEnd
 	 * Streamed sounds load and unload chunks of audio data during playback, keeping memory usage low.
 	 * The usage of streamed sounds is only recommended for larger audio tracks, such as music.
 	 * 
-	 * **Note**: Due to a backend limitation, streamed sounds currently only work on native targets and OGG/Vorbis files.
 	 * Trying to stream an unsupported file format will fall back to regular sound loading behavior.
 	 * 
 	 * **Note:** If the `FLX_DEFAULT_SOUND_EXT` flag is enabled, you may omit the file extension
@@ -439,7 +483,7 @@ class AssetFrontEnd
 		{
 			if (!canStreamSound(id))
 			{
-				log('Unable to stream SOUND asset with ID "$id". Expected a .OGG/Vorbis file');
+				log('Unable to stream SOUND asset with ID "$id". Expected a valid audio file.');
 				return null;
 			}
 			
@@ -460,7 +504,6 @@ class AssetFrontEnd
 	 * Streamed sounds load and unload chunks of audio data during playback, keeping memory usage low.
 	 * The usage of streamed sounds is only recommended for larger audio tracks, such as music.
 	 * 
-	 * **Note**: Due to a backend limitation, streamed sounds currently only work on native targets and OGG/Vorbis files.
 	 * Trying to stream an unsupported file format will fall back to regular sound loading behavior.
 	 * 
 	 * @param   id        The ID or asset path for the sound
@@ -477,8 +520,6 @@ class AssetFrontEnd
 	/**
 	 * Checks whether the sound asset with the specified ID can be streamed.
 	 * 
-	 * **Note**: Due to a backend limitation, streamed sounds currently only work on native targets and OGG/Vorbis files.
-	 * 
 	 * **Note:** If the `FLX_DEFAULT_SOUND_EXT` flag is enabled, you may omit the file extension
 	 * 
 	 * @param   file   The ID or asset path for the asset
@@ -487,7 +528,7 @@ class AssetFrontEnd
 	 */
 	public dynamic function canStreamSound(id:String):Bool
 	{
-		return false;
+		return true;
 	}
 
 	/**
