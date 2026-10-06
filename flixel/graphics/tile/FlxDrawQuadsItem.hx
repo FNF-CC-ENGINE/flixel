@@ -13,8 +13,6 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 {
 	static inline var VERTICES_PER_QUAD = 4;
 
-	public var shader:FlxShader;
-
 	var rects:Vector<Float>;
 	var transforms:Vector<Float>;
 	var alphas:Array<Float>;
@@ -149,6 +147,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		final shader = shader != null ? shader : graphics.shader;
 		shader.bitmap.input = graphics.bitmap;
 		shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
+		shader.bitmap.blendTarget = blendTarget;
 		shader.alpha.value = alphas;
 
 		if (colored || hasColorOffsets)

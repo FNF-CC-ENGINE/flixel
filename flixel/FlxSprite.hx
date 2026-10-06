@@ -18,6 +18,7 @@ import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxDirectionFlags;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
+import openfl.display3D.Context3DBlendTarget;
 import openfl.geom.ColorTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -257,6 +258,15 @@ class FlxSprite extends FlxObject
 	 * Blending modes, just like Photoshop or whatever, e.g. "multiply", "screen", etc.
 	 */
 	public var blend(default, set):BlendMode;
+
+	/**
+	 * Blending modes target.
+	 *
+	 * BlendRenderTarget: The sprite is blended against the current render target.
+	 * BlendBackBuffer: The sprite is blended against the back buffer.
+	 * BlendCustomTarget: The sprite is blended against a custom bitmap.
+	 */
+	public var blendTarget:Context3DBlendTarget = Context3DBlendTarget.BlendRenderTarget;
 	
 	/**
 	 * Multiplies this sprite's image by the given red, green and blue components, alpha is ignored.
@@ -1021,7 +1031,7 @@ class FlxSprite extends FlxObject
 			_point.round();
 
 		_point.copyTo(_flashPoint);
-		camera.copyPixels(_frame, framePixels, _flashRect, _flashPoint, colorTransform, blend, antialiasing);
+		camera.copyPixels(_frame, framePixels, _flashRect, _flashPoint, colorTransform, blend, antialiasing, blendTarget);
 	}
 
 	@:noCompletion
@@ -1038,7 +1048,7 @@ class FlxSprite extends FlxObject
 		
 		prepareComplexMatrix(matrix, frame, camera);
 		
-		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader, blendTarget);
 
 		if (shaders != null && shaders.length > 0)
 		{
@@ -1047,7 +1057,7 @@ class FlxSprite extends FlxObject
 				var extraShader = shaders[i];
 				if (extraShader != null)
 				{
-					camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, extraShader);
+					camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, extraShader, blendTarget);
 				}
 			}
 		}

@@ -70,7 +70,8 @@ class CameraFrontEnd
 		if (DefaultDrawTarget)
 			defaults.push(NewCamera);
 		
-		NewCamera.ID = list.length - 1;
+		sortCameras();
+
 		cameraAdded.dispatch(NewCamera);
 		return NewCamera;
 	}
@@ -104,12 +105,13 @@ class CameraFrontEnd
 		if (defaultDrawTarget)
 			defaults.push(newCamera);
 		
-		for (i in position...list.length)
-			list[i].ID = i;
+		sortCameras();
 		
 		cameraAdded.dispatch(newCamera);
 		return newCamera;
 	}
+
+	private var _toKillList:Int = 0;
 
 	/**
 	 * Remove a camera from the game.
@@ -119,8 +121,18 @@ class CameraFrontEnd
 	 */
 	public function remove(Camera:FlxCamera, Destroy:Bool = true):Void
 	{
-		var index:Int = list.indexOf(Camera);
-		if (Camera != null && index != -1)
+		if (Camera == null)
+			return;
+			
+		if (!Camera.removable)
+		{
+			FlxG.log.warn("FlxG.cameras.remove(): Attempted to remove a non-removable camera.");
+			_toKillList++;
+			return;
+		}
+		
+		var index = list.indexOf(Camera);
+		if (index != -1)
 		{
 			FlxG.game.removeChild(Camera.flashSprite);
 			list.splice(index, 1);
@@ -128,17 +140,11 @@ class CameraFrontEnd
 		}
 		else
 		{
-			FlxG.log.warn("FlxG.cameras.remove(): The camera you attempted to remove is not a part of the game.");
+			FlxG.log.warn("FlxG.cameras.remove(): Camera not found in list.");
 			return;
 		}
 
-		if (FlxG.renderTile)
-		{
-			for (i in 0...list.length)
-			{
-				list[i].ID = i;
-			}
-		}
+		sortCameras();
 
 		if (Destroy)
 			Camera.destroy();
@@ -181,8 +187,10 @@ class CameraFrontEnd
 	{
 		FlxG.camera = null;
 		
-		while (list.length > 0)
-			remove(list[0]);
+		_toKillList = 0;
+
+		while (list.length - _toKillList > 0)
+			remove(list[_toKillList]);
 
 		if (NewCamera == null)
 			NewCamera = new FlxCamera();
@@ -241,6 +249,46 @@ class CameraFrontEnd
 		{
 			camera.shake(Intensity, Duration, OnComplete, Force, Axes);
 		}
+	}
+
+	public function sortCameras():Void
+	{
+		var zeroGroup = [];
+		var nonZeroGroup = [];
+		
+		for (cam in list)
+		{
+			if (cam.zIndex == 0)
+				zeroGroup.push(cam);
+			else
+				nonZeroGroup.push(cam);
+		}
+		
+		haxe.ds.ArraySort.sort(nonZeroGroup, (a, b) -> a.zIndex - b.zIndex);
+		
+		var newList = zeroGroup.concat(nonZeroGroup);
+		
+		var game = FlxG.game;
+		for (i in 0...newList.length)
+		{
+			var cam = newList[i];
+			var sprite = cam.flashSprite;
+			game.removeChild(sprite);
+		}
+		
+		for (i in 0...newList.length)
+		{
+			var cam = newList[i];
+			var targetIndex = i;
+			var current = game.getChildIndex(cam.flashSprite);
+			if (current != targetIndex)
+				game.addChildAt(cam.flashSprite, targetIndex);
+		}
+		
+		list = newList;
+		
+		for (i in 0...list.length)
+			list[i].ID = i;
 	}
 
 	@:allow(flixel.FlxG)

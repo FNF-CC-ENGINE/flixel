@@ -3,7 +3,9 @@ package flixel.graphics.tile;
 import flixel.FlxCamera;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
+import flixel.system.FlxAssets.FlxShader;
 import openfl.display.BlendMode;
+import openfl.display3D.Context3DBlendTarget;
 import openfl.geom.ColorTransform;
 
 /**
@@ -32,12 +34,15 @@ class FlxDrawBaseItem<T>
 	public var colored:Bool = false;
 	public var hasColorOffsets:Bool = false;
 	public var blend:BlendMode;
+	public var blendTarget:Context3DBlendTarget = Context3DBlendTarget.BlendRenderTarget;
 
 	@:noCompletion
 	@:deprecated("blending is deprecated, remove all references to it")
 	public var blending:Int = 0;
 
 	public var type:FlxDrawItemType;
+
+	public var shader:FlxShader;
 
 	public var numVertices(get, never):Int;
 
