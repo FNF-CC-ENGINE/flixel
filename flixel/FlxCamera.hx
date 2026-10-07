@@ -367,6 +367,11 @@ class FlxCamera extends FlxBasic
 	public var removable:Bool = true;
 
 	/**
+	 * Whether or not FX are currently active.
+	 */
+	public var fxActive:Bool = true;
+
+	/**
 	 * Internal, used in blit render mode in camera's `fill()` method for less garbage creation.
 	 * It represents the size of buffer `BitmapData`
 	 * (the area of camera's buffer which should be filled with `bgColor`).
