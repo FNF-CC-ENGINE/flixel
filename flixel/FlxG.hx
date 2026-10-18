@@ -710,12 +710,10 @@ class FlxG
 		if (value > updateFramerate)
 			log.warn("FlxG.drawFramerate: the update framerate shouldn't be smaller than the draw framerate," + " since it can stop your game from updating.");
 
-		drawFramerate = value;
-
 		if (game.stage != null)
-			game.stage.frameRate = drawFramerate;
+			game.stage.frameRate = value;
 
-		return value;
+		return drawFramerate = value;
 	}
 
 	static function get_fullscreen():Bool
