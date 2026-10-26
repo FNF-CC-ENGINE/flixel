@@ -362,7 +362,7 @@ class FlxCamera extends FlxBasic
 	public var filtersEnabled:Bool = true;
 
 	/**
-	 * Indicates whether camera can be automatically removed by CameraFrontEnd.
+	 * Indicates whether camera can be automatically removed by `CameraFrontEnd`.
 	 */
 	public var removable:Bool = true;
 
@@ -370,6 +370,11 @@ class FlxCamera extends FlxBasic
 	 * Whether or not FX are currently active.
 	 */
 	public var fxActive:Bool = true;
+
+	/**
+	 * Prevents clipped or empty edges when the camera is rotated or tilted.
+	 */
+	public var zCameraFix(default, set):Bool = false;
 
 	/**
 	 * Internal, used in blit render mode in camera's `fill()` method for less garbage creation.
@@ -1424,10 +1429,16 @@ class FlxCamera extends FlxBasic
 
 		if (rect != null)
 		{
-			rect.x = rect.y = 0;
+			var fixScale:Float = zCameraFix ? 1.5 : 1.0;
 
-			rect.width = width * initialZoom * FlxG.scaleMode.scale.x;
-			rect.height = height * initialZoom * FlxG.scaleMode.scale.y;
+			var baseWidth = width * initialZoom * FlxG.scaleMode.scale.x;
+			var baseHeight = height * initialZoom * FlxG.scaleMode.scale.y;
+
+			rect.width = baseWidth * fixScale;
+			rect.height = baseHeight * fixScale;
+
+			rect.x = -0.5 * (rect.width - baseWidth);
+			rect.y = -0.5 * (rect.height - baseHeight);
 
 			_scrollRect.scrollRect = rect;
 
@@ -2475,14 +2486,36 @@ class FlxCamera extends FlxBasic
 		return this.visible = visible;
 	}
 
+	function set_zCameraFix(value:Bool):Bool
+	{
+		if (zCameraFix != value)
+		{
+			zCameraFix = value;
+			calcMarginX();
+			calcMarginY();
+			updateScrollRect();
+		}
+		return value;
+	}
+
 	inline function calcMarginX():Void
 	{
 		viewMarginX = 0.5 * width * (scaleX - initialZoom) / scaleX;
+		
+		if (zCameraFix) 
+		{
+			viewMarginX -= (width * 0.25) / scaleX;
+		}
 	}
 
 	inline function calcMarginY():Void
 	{
 		viewMarginY = 0.5 * height * (scaleY - initialZoom) / scaleY;
+		
+		if (zCameraFix) 
+		{
+			viewMarginY -= (height * 0.25) / scaleY;
+		}
 	}
 	
 	static inline function get_defaultCameras():Array<FlxCamera>
