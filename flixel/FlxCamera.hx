@@ -2416,6 +2416,20 @@ class FlxCamera extends FlxBasic
 		_cosAngle = Math.cos(radians);
 		_sinAngle = Math.sin(radians);
 		
+		if (zCameraFix && flashSprite != null)
+		{
+			var aspect = Math.max(width / height, height / width);
+			var autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
+			
+			flashSprite.scaleX = autoScale;
+			flashSprite.scaleY = autoScale;
+		}
+		else if (flashSprite != null)
+		{
+			flashSprite.scaleX = 1.0;
+			flashSprite.scaleY = 1.0;
+		}
+		
 		return Angle;
 	}
 
@@ -2494,6 +2508,8 @@ class FlxCamera extends FlxBasic
 			calcMarginX();
 			calcMarginY();
 			updateScrollRect();
+
+			set_angle(angle);
 		}
 		return value;
 	}
