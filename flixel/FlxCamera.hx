@@ -1442,8 +1442,8 @@ class FlxCamera extends FlxBasic
 
 			_scrollRect.scrollRect = rect;
 
-			_scrollRect.x = -0.5 * rect.width;
-			_scrollRect.y = -0.5 * rect.height;
+			_scrollRect.x = -0.5 * baseWidth;
+			_scrollRect.y = -0.5 * baseHeight;
 		}
 	}
 
