@@ -374,7 +374,7 @@ class FlxCamera extends FlxBasic
 	/**
 	 * Prevents clipped or empty edges when the camera is rotated or tilted.
 	 */
-	public var zCameraFix(default, set):Bool = false;
+	public var zCameraFix(default, set):Bool = true;
 
 	/**
 	 * Internal, used in blit render mode in camera's `fill()` method for less garbage creation.
@@ -1464,8 +1464,8 @@ class FlxCamera extends FlxBasic
 		var rectWidth = Math.ceil(baseWidth * fixScale);
 		var rectHeight = Math.ceil(baseHeight * fixScale);
 
-		var offsetX = rectWidth - baseWidth;
-		var offsetY = rectHeight - baseHeight;
+		var offsetX = (rectWidth - baseWidth) / 2;
+		var offsetY = (rectHeight - baseHeight) / 2;
 
 		if (FlxG.renderBlit)
 		{
