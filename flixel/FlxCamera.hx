@@ -374,7 +374,7 @@ class FlxCamera extends FlxBasic
 	/**
 	 * Prevents clipped or empty edges when the camera is rotated or tilted.
 	 */
-	public var zCameraFix(default, set):Bool = true;
+	public var zCameraFix(default, set):Bool = false;
 
 	/**
 	 * Internal, used in blit render mode in camera's `fill()` method for less garbage creation.
@@ -1176,6 +1176,8 @@ class FlxCamera extends FlxBasic
 			updateFade(elapsed);
 			updateShake(elapsed);
 		}
+
+		flashSprite.filters = filtersEnabled ? filters : [];
 
 		updateFlashSpritePosition();
     	__updateViewportRect();
