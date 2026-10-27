@@ -1431,19 +1431,20 @@ class FlxCamera extends FlxBasic
 		{
 			var fixScale:Float = zCameraFix ? 1.5 : 1.0;
 
-			var baseWidth = width * initialZoom * FlxG.scaleMode.scale.x;
-			var baseHeight = height * initialZoom * FlxG.scaleMode.scale.y;
+			var baseWidth = Math.ceil(width * initialZoom * FlxG.scaleMode.scale.x);
+			var baseHeight = Math.ceil(height * initialZoom * FlxG.scaleMode.scale.y);
 
-			rect.width = baseWidth * fixScale;
-			rect.height = baseHeight * fixScale;
+			rect.width = Math.ceil(baseWidth * fixScale);
+			rect.height = Math.ceil(baseHeight * fixScale);
 
-			rect.x = -0.5 * (rect.width - baseWidth);
-			rect.y = -0.5 * (rect.height - baseHeight);
+			rect.x = 0;
+			rect.y = 0;
 
-			_scrollRect.scrollRect = rect;
+			_scrollRect.scrollRect = null; 
+			_scrollRect.scrollRect = new Rectangle(rect.x, rect.y, rect.width, rect.height);
 
-			_scrollRect.x = -0.5 * baseWidth;
-			_scrollRect.y = -0.5 * baseHeight;
+			_scrollRect.x = Math.round(-0.5 * baseWidth - 0.5 * (rect.width - baseWidth));
+			_scrollRect.y = Math.round(-0.5 * baseHeight - 0.5 * (rect.height - baseHeight));
 		}
 	}
 
@@ -1455,20 +1456,31 @@ class FlxCamera extends FlxBasic
 	 */
 	function updateInternalSpritePositions():Void
 	{
+		var fixScale:Float = zCameraFix ? 1.5 : 1.0;
+		
+		var baseWidth = Math.ceil(width * initialZoom * FlxG.scaleMode.scale.x);
+		var baseHeight = Math.ceil(height * initialZoom * FlxG.scaleMode.scale.y);
+		
+		var rectWidth = Math.ceil(baseWidth * fixScale);
+		var rectHeight = Math.ceil(baseHeight * fixScale);
+
+		var offsetX = rectWidth - baseWidth;
+		var offsetY = rectHeight - baseHeight;
+
 		if (FlxG.renderBlit)
 		{
 			if (_flashBitmap != null)
 			{
-				_flashBitmap.x = 0;
-				_flashBitmap.y = 0;
+				_flashBitmap.x = offsetX;
+				_flashBitmap.y = offsetY;
 			}
 		}
 		else
 		{
 			if (canvas != null)
 			{
-				canvas.x = -0.5 * width * (scaleX - initialZoom) * FlxG.scaleMode.scale.x;
-				canvas.y = -0.5 * height * (scaleY - initialZoom) * FlxG.scaleMode.scale.y;
+				canvas.x = -0.5 * width * (scaleX - initialZoom) * FlxG.scaleMode.scale.x + offsetX;
+				canvas.y = -0.5 * height * (scaleY - initialZoom) * FlxG.scaleMode.scale.y + offsetY;
 
 				canvas.scaleX = totalScaleX;
 				canvas.scaleY = totalScaleY;
@@ -1478,7 +1490,6 @@ class FlxCamera extends FlxBasic
 				{
 					debugLayer.x = canvas.x;
 					debugLayer.y = canvas.y;
-
 					debugLayer.scaleX = totalScaleX;
 					debugLayer.scaleY = totalScaleY;
 				}
@@ -2287,6 +2298,11 @@ class FlxCamera extends FlxBasic
 	{
 		updateFlashOffset();
 		setScale(scaleX, scaleY);
+		
+		if (zCameraFix)
+		{
+			set_angle(angle);
+		}
 	}
 	
 	/**
@@ -2363,6 +2379,8 @@ class FlxCamera extends FlxBasic
 			updateScrollRect();
 			updateInternalSpritePositions();
 
+			if (zCameraFix) set_angle(angle);
+
 			FlxG.cameras.cameraResized.dispatch(this);
 		}
 		return Value;
@@ -2377,6 +2395,8 @@ class FlxCamera extends FlxBasic
 			updateFlashOffset();
 			updateScrollRect();
 			updateInternalSpritePositions();
+
+			if (zCameraFix) set_angle(angle);
 
 			FlxG.cameras.cameraResized.dispatch(this);
 		}
