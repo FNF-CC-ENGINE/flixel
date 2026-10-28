@@ -1972,12 +1972,21 @@ class FlxCamera extends FlxBasic
 		var viewX = worldToViewX(worldX, scrollFactorX);
 		var viewY = worldToViewY(worldY, scrollFactorY);
 
-		if (angle != 0)
+		if (angle != 0 || zCameraFix)
 		{
 			final pivotX = width * 0.5;
 			final pivotY = height * 0.5;
-			final dx = viewX - pivotX;
-			final dy = viewY - pivotY;
+
+			var dx = viewX - pivotX;
+			var dy = viewY - pivotY;
+
+			if (zCameraFix)
+			{
+				final aspect = Math.max(width / height, height / width);
+				final autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
+				dx *= autoScale;
+				dy *= autoScale;
+			}
 
 			viewX = pivotX + (dx * _cosAngle + dy * _sinAngle);
 			viewY = pivotY + (dy * _cosAngle - dx * _sinAngle);
@@ -2080,12 +2089,21 @@ class FlxCamera extends FlxBasic
 		if (result == null)
 			result = FlxPoint.get();
 		
-		if (angle != 0)
+		if (angle != 0 || zCameraFix)
 		{
 			final pivotX = width * 0.5;
 			final pivotY = height * 0.5;
-			final dx = viewX - pivotX;
-			final dy = viewY - pivotY;
+
+			var dx = viewX - pivotX;
+			var dy = viewY - pivotY;
+
+			if (zCameraFix)
+			{
+				final aspect = Math.max(width / height, height / width);
+				final autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
+				dx /= autoScale;
+				dy /= autoScale;
+			}
 
 			viewX = pivotX + (dx * _cosAngle - dy * _sinAngle);
 			viewY = pivotY + (dx * _sinAngle + dy * _cosAngle);
@@ -2153,12 +2171,21 @@ class FlxCamera extends FlxBasic
 		var viewX = (gameX - x) / zoom;
 		var viewY = (gameY - y) / zoom;
 
-		if (angle != 0)
+		if (angle != 0 || zCameraFix)
 		{
 			final pivotX = width * 0.5;
 			final pivotY = height * 0.5;
-			final dx = viewX - pivotX;
-			final dy = viewY - pivotY;
+
+			var dx = viewX - pivotX;
+			var dy = viewY - pivotY;
+
+			if (zCameraFix)
+			{
+				final aspect = Math.max(width / height, height / width);
+				final autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
+				dx /= autoScale;
+				dy /= autoScale;
+			}
 
 			viewX = pivotX + (dx * _cosAngle + dy * _sinAngle);
 			viewY = pivotY + (dy * _cosAngle - dx * _sinAngle);
@@ -2221,12 +2248,21 @@ class FlxCamera extends FlxBasic
 		if (result == null)
 			result = FlxPoint.get();
 		
-		if (angle != 0)
+		if (angle != 0 || zCameraFix)
 		{
 			final pivotX = width * 0.5;
 			final pivotY = height * 0.5;
-			final dx = viewX - pivotX;
-			final dy = viewY - pivotY;
+
+			var dx = viewX - pivotX;
+			var dy = viewY - pivotY;
+
+			if (zCameraFix)
+			{
+				final aspect = Math.max(width / height, height / width);
+				final autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
+				dx *= autoScale;
+				dy *= autoScale;
+			}
 
 			viewX = pivotX + (dx * _cosAngle - dy * _sinAngle);
 			viewY = pivotY + (dx * _sinAngle + dy * _cosAngle);
@@ -2590,21 +2626,11 @@ class FlxCamera extends FlxBasic
 	inline function calcMarginX():Void
 	{
 		viewMarginX = 0.5 * width * (scaleX - initialZoom) / scaleX;
-		
-		if (zCameraFix) 
-		{
-			viewMarginX -= (width * 0.25) / scaleX;
-		}
 	}
 
 	inline function calcMarginY():Void
 	{
 		viewMarginY = 0.5 * height * (scaleY - initialZoom) / scaleY;
-		
-		if (zCameraFix) 
-		{
-			viewMarginY -= (height * 0.25) / scaleY;
-		}
 	}
 	
 	static inline function get_defaultCameras():Array<FlxCamera>
