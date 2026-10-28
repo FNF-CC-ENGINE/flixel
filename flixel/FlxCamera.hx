@@ -377,6 +377,12 @@ class FlxCamera extends FlxBasic
 	public var zCameraFix(default, set):Bool = false;
 
 	/**
+	 * Internal sprite used as a rigid mask. It crops the camera's viewport to its original 
+	 * boundaries, preserving letterboxing when zCameraFix is active.
+	 */
+	var _clipSprite:Sprite = new Sprite();
+
+	/**
 	 * Internal, used in blit render mode in camera's `fill()` method for less garbage creation.
 	 * It represents the size of buffer `BitmapData`
 	 * (the area of camera's buffer which should be filled with `bgColor`).
@@ -481,6 +487,12 @@ class FlxCamera extends FlxBasic
 	 * Internal, used for repetitive calculations and added to help avoid costly allocations.
 	 */
 	var _point:FlxPoint = FlxPoint.get();
+
+	/**
+	 * Internal container that handles the actual rotation and scaling of the camera's 
+	 * graphics. It scales up to prevent empty or clipped corners during rotation.
+	 */
+	var _rotationSprite:Sprite = new Sprite();
 
 	/**
 	 * The filters array to be applied to the camera.
@@ -1052,20 +1064,30 @@ class FlxCamera extends FlxBasic
 		this.height = height;
 		_flashRect = new Rectangle(0, 0, width, height);
 
-		flashSprite.addChild(_scrollRect);
+		flashSprite.addChild(_clipSprite);
+		_clipSprite.addChild(_rotationSprite);
+		_rotationSprite.addChild(_scrollRect);
+
 		_scrollRect.scrollRect = new Rectangle();
 
 		pixelPerfectRender = FlxG.renderBlit;
 
 		if (FlxG.renderBlit)
 		{
+			var fixScale:Float = zCameraFix ? 1.5 : 1.0;
+			var bufW = Math.ceil(width * fixScale);
+			var bufH = Math.ceil(height * fixScale);
+
+			_flashRect.width = bufW;
+			_flashRect.height = bufH;
+
 			screen = new FlxSprite();
-			buffer = new BitmapData(width, height, true, 0);
+			buffer = new BitmapData(bufW, bufH, true, 0);
 			screen.pixels = buffer;
 			screen.origin.zero();
 			_flashBitmap = new Bitmap(buffer);
 			_scrollRect.addChild(_flashBitmap);
-			_fill = new BitmapData(width, height, true, FlxColor.TRANSPARENT);
+			_fill = new BitmapData(bufW, bufH, true, FlxColor.TRANSPARENT);
 		}
 		else
 		{
@@ -1096,7 +1118,11 @@ class FlxCamera extends FlxBasic
 	 */
 	override public function destroy():Void
 	{
-		FlxDestroyUtil.removeChild(flashSprite, _scrollRect);
+		FlxDestroyUtil.removeChild(flashSprite, _clipSprite);
+		FlxDestroyUtil.removeChild(_clipSprite, _rotationSprite);
+		FlxDestroyUtil.removeChild(_rotationSprite, _scrollRect);
+		_clipSprite = null;
+		_rotationSprite = null;
 
 		if (FlxG.renderBlit)
 		{
@@ -1438,15 +1464,32 @@ class FlxCamera extends FlxBasic
 
 			rect.width = Math.ceil(baseWidth * fixScale);
 			rect.height = Math.ceil(baseHeight * fixScale);
-
 			rect.x = 0;
 			rect.y = 0;
 
 			_scrollRect.scrollRect = null; 
 			_scrollRect.scrollRect = new Rectangle(rect.x, rect.y, rect.width, rect.height);
-
 			_scrollRect.x = Math.round(-0.5 * baseWidth - 0.5 * (rect.width - baseWidth));
 			_scrollRect.y = Math.round(-0.5 * baseHeight - 0.5 * (rect.height - baseHeight));
+
+			if (zCameraFix && _clipSprite != null && _rotationSprite != null)
+			{
+				_clipSprite.scrollRect = new Rectangle(0, 0, baseWidth, baseHeight);
+				_clipSprite.x = -0.5 * baseWidth;
+				_clipSprite.y = -0.5 * baseHeight;
+				
+				_rotationSprite.x = 0.5 * baseWidth;
+				_rotationSprite.y = 0.5 * baseHeight;
+			}
+			else if (_clipSprite != null && _rotationSprite != null)
+			{
+				_clipSprite.scrollRect = null;
+				_clipSprite.x = 0;
+				_clipSprite.y = 0;
+				
+				_rotationSprite.x = 0;
+				_rotationSprite.y = 0;
+			}
 		}
 	}
 
@@ -1473,8 +1516,8 @@ class FlxCamera extends FlxBasic
 		{
 			if (_flashBitmap != null)
 			{
-				_flashBitmap.x = offsetX;
-				_flashBitmap.y = offsetY;
+				_flashBitmap.x = 0;
+				_flashBitmap.y = 0;
 			}
 		}
 		else
@@ -1786,17 +1829,21 @@ class FlxCamera extends FlxBasic
 	{
 		if (FlxG.renderBlit)
 		{
-			if (width != buffer.width || height != buffer.height)
+			var fixScale:Float = zCameraFix ? 1.5 : 1.0;
+			var bufW = Math.ceil(width * fixScale);
+			var bufH = Math.ceil(height * fixScale);
+
+			if (bufW != buffer.width || bufH != buffer.height)
 			{
 				var oldBuffer:FlxGraphic = screen.graphic;
-				buffer = new BitmapData(width, height, true, 0);
+				buffer = new BitmapData(bufW, bufH, true, 0);
 				screen.pixels = buffer;
 				screen.origin.zero();
 				_flashBitmap.bitmapData = buffer;
-				_flashRect.width = width;
-				_flashRect.height = height;
+				_flashRect.width = bufW;
+				_flashRect.height = bufH;
 				_fill = FlxDestroyUtil.dispose(_fill);
-				_fill = new BitmapData(width, height, true, FlxColor.TRANSPARENT);
+				_fill = new BitmapData(bufW, bufH, true, FlxColor.TRANSPARENT);
 				FlxG.bitmap.removeIfNoUse(oldBuffer);
 			}
 
@@ -2432,24 +2479,24 @@ class FlxCamera extends FlxBasic
 	function set_angle(Angle:Float):Float
 	{
 		angle = Angle;
-		flashSprite.rotation = Angle;
+		if (_rotationSprite != null) _rotationSprite.rotation = Angle;
 		
 		var radians = Angle * FlxAngle.TO_RAD;
 		_cosAngle = Math.cos(radians);
 		_sinAngle = Math.sin(radians);
 		
-		if (zCameraFix && flashSprite != null)
+		if (zCameraFix && _rotationSprite != null)
 		{
 			var aspect = Math.max(width / height, height / width);
 			var autoScale = Math.abs(_cosAngle) + aspect * Math.abs(_sinAngle);
 			
-			flashSprite.scaleX = autoScale;
-			flashSprite.scaleY = autoScale;
+			_rotationSprite.scaleX = autoScale;
+			_rotationSprite.scaleY = autoScale;
 		}
-		else if (flashSprite != null)
+		else if (_rotationSprite != null)
 		{
-			flashSprite.scaleX = 1.0;
-			flashSprite.scaleY = 1.0;
+			_rotationSprite.scaleX = 1.0;
+			_rotationSprite.scaleY = 1.0;
 		}
 		
 		return Angle;
@@ -2527,9 +2574,13 @@ class FlxCamera extends FlxBasic
 		if (zCameraFix != value)
 		{
 			zCameraFix = value;
+			
+			if (FlxG.renderBlit) checkResize();
+			
 			calcMarginX();
 			calcMarginY();
 			updateScrollRect();
+			updateInternalSpritePositions();
 
 			set_angle(angle);
 		}
