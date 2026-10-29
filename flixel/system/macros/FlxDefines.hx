@@ -41,7 +41,6 @@ private enum UserDefine
 	FLX_4_LEGACY_COLLISION;
 	/* Simplifies FlxPoint but can increase GC frequency */
 	FLX_NO_POINT_POOL;
-	FLX_NO_PITCH;
 	FLX_NO_SAVE;
 	/** Adds trackers to FlxPool instances, only available on debug */
 	FLX_TRACK_POOLS;
@@ -111,7 +110,6 @@ private enum HelperDefine
 	FLX_ACCELEROMETER;
 	FLX_DRAW_QUADS;
 	FLX_POINT_POOL;
-	FLX_PITCH;
 	/* Used in HaxeFlixel CI, should have no effect on personal projects */
 	FLX_NO_UNIT_TEST;
 	/* Used in HaxeFlixel CI, should have no effect on personal projects */
@@ -259,12 +257,6 @@ class FlxDefines
 
 		if (!defined(FLX_NO_SOUND_SYSTEM) && !defined(FLX_NO_SOUND_TRAY))
 			define(FLX_SOUND_TRAY);
-
-		if (defined(FLX_NO_SOUND_SYSTEM) || defined("flash"))
-			define(FLX_NO_PITCH);
-
-		if (!defined(FLX_NO_PITCH))
-			define(FLX_PITCH);
 		
 		if (!defined(FLX_NO_SAVE))
 			define(FLX_SAVE);

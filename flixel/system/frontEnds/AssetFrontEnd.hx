@@ -446,7 +446,7 @@ class AssetFrontEnd
 		
 		#if sys
 		if (sys.FileSystem.exists(fullId)) {
-			var buffer = lime.media.AudioBuffer.fromFileStream(fullId);
+			var buffer = lime.media.AudioBuffer.fromFile(fullId, true);
 			if (buffer != null) return openfl.media.Sound.fromAudioBuffer(buffer);
 			
 			return openfl.media.Sound.fromFile(fullId);
