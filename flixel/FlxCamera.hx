@@ -1205,7 +1205,6 @@ class FlxCamera extends FlxBasic
 
 		flashSprite.filters = filtersEnabled ? filters : [];
 
-		updateFlashSpritePosition();
     	__updateViewportRect();
 	}
 
