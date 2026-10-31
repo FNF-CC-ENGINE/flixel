@@ -60,6 +60,15 @@ class SoundFrontEnd
 	 * Default keys: 0 (and numpad 0). Set to null to deactivate.
 	 */
 	public var muteKeys:Array<FlxKey> = [ZERO, NUMPADZERO];
+
+	/**
+	 * Whether or not holding the volume keys continuously changes the volume.
+	 */
+	public var volumePressureEnabled:Bool = true;
+
+	var _holdRepeatTimer:Float = 0;
+	public var volumeHoldDelay:Float = 0.35;     
+	public var volumeRepeatInterval:Float = 0.08;
 	#end
 
 	/**
@@ -590,23 +599,50 @@ class SoundFrontEnd
 	 * Called by the game loop to make sure the sounds get updated each frame.
 	 */
 	@:allow(flixel.FlxGame)
-	function update(elapsed:Float):Void
-	{
-		if (list != null && list.active)
-			list.update(elapsed);
+    function update(elapsed:Float):Void
+    {
+        if (music != null && music.active)
+            music.update(elapsed);
 
-		#if FLX_KEYBOARD
-		if (!FlxInputText.globalManager.isTyping)
-		{
-			if (FlxG.keys.anyJustReleased(muteKeys))
-				toggleMuted();
-			else if (FlxG.keys.anyJustReleased(volumeUpKeys))
-				changeVolume(0.1);
-			else if (FlxG.keys.anyJustReleased(volumeDownKeys))
-				changeVolume(-0.1);
-		}
-		#end
-	}
+        if (list != null && list.active)
+            list.update(elapsed);
+
+        #if FLX_KEYBOARD
+        if (!FlxInputText.globalManager.isTyping)
+        {
+            if (FlxG.keys.anyJustReleased(muteKeys))
+            {
+                toggleMuted();
+            }
+            
+            var upJustPressed = FlxG.keys.anyJustPressed(volumeUpKeys);
+            var downJustPressed = FlxG.keys.anyJustPressed(volumeDownKeys);
+            var upPressed = FlxG.keys.anyPressed(volumeUpKeys);
+            var downPressed = FlxG.keys.anyPressed(volumeDownKeys);
+
+            if (upJustPressed || downJustPressed)
+            {
+                _holdRepeatTimer = 0;
+                if (upJustPressed) changeVolume(0.1);
+                if (downJustPressed) changeVolume(-0.1);
+            }
+            else if (volumePressureEnabled && (upPressed || downPressed))
+            {
+                _holdRepeatTimer += elapsed;
+                if (_holdRepeatTimer >= volumeHoldDelay)
+                {
+                    _holdRepeatTimer -= volumeRepeatInterval;
+                    if (upPressed) changeVolume(0.1);
+                    if (downPressed) changeVolume(-0.1);
+                }
+            }
+            else
+            {
+                _holdRepeatTimer = 0;
+            }
+        }
+        #end
+    }
 
 	@:allow(flixel.FlxGame)
 	function onFocusLost():Void
